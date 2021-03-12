@@ -50,7 +50,7 @@ wait_enter install required libs with apt && (
 wait_enter install useful commands && (
   cmd_exist jq && exit
   sudo apt install jq tree shellcheck peek unar -y
-  sudo snap install yq nkf wine64
+  sudo snap install yq nkf wine64 winetricks
 )
 
 wait_enter install and configure japanese input && (
