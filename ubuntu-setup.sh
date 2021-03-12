@@ -50,7 +50,7 @@ wait_enter install required libs with apt && (
 wait_enter install useful commands && (
   cmd_exist jq && exit
   sudo apt install jq tree shellcheck peek unar -y
-  sudo snap install yq nkf wine64 winetricks
+  sudo snap install yq nkf
 )
 
 wait_enter install and configure japanese input && (
@@ -203,6 +203,14 @@ wait_enter install yarn && (
   sudo apt-add-repository 'deb https://dl.yarnpkg.com/debian/ stable main' -y
   sudo apt install yarn
   yarn -v
+)
+
+wait_enter install wine && (
+  cmd_exist wine && exit
+  curl -sS https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
+  sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ groovy main'
+  sudo apt update
+  sudo apt install --install-recommends winehq-staging winetricks -y
 )
 
 wait_enter setup gitconfig && (

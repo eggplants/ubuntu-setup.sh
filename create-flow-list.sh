@@ -1,5 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
 
+shellcheck ubuntu-setup.sh && bash -n ubuntu-setup.sh
 sed -i '/Flow/,$d' README.md
 
 cat << A >> README.md

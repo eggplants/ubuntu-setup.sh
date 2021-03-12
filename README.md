@@ -37,6 +37,7 @@ FIRST: apt update && upgrade
  install ruby
  install clisp
  install yarn
+ install wine
  setup gitconfig
  install dotfiles
  change default shell (bash -> zsh)
