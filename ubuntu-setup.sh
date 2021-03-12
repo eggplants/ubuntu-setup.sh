@@ -1,9 +1,9 @@
 #!/bin/bash -e
 # shellcheck disable=SC1090,SC1091
 
-####################
-# intractive setup #
-####################
+#####################
+# interactive setup #
+#####################
 
 readonly INSTALL_WAIT_OFF=${1-0}
 
