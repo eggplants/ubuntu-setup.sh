@@ -1,0 +1,244 @@
+#!/bin/bash -e
+# shellcheck disable=SC1090,SC1091
+
+####################
+# intractive setup #
+####################
+
+readonly INSTALL_WAIT_OFF=${1-0}
+
+function cmd_exist(){
+  which "$1" > /dev/null && {
+    echo "${1}: command already exists"
+  } || return 1
+}
+
+function file_exist(){
+  [ -f "$1" ] && {
+    echo "${1}: file already exists"
+  } || return 1
+}
+
+function wait_enter(){
+  [ "$INSTALL_WAIT_OFF" -eq 1 ] && return 0
+  for((;i++<3;)){
+    printf "%0*d\n" "$i" | tr 0 v;sleep 0.15
+  }
+  if [ $# -eq 0 ];then
+    echo -n '[ENTER]'
+    read -r
+  else
+    echo -n "[${*} - ENTER Y/n]:"
+    read -r sel
+    [[ "$sel" =~ Y|y ]] && return 0 || return 1
+  fi
+}
+
+mkdir -p ~/prog
+
+echo '[FIRST: apt update && upgrade]'
+sudo apt update -y && sudo apt upgrade -y
+
+wait_enter install required libs with apt && (
+  cmd_exist byobu && exit
+  sudo apt install git curl wget w3m zsh gcc byobu \
+                   pinentry-tty build-essential \
+                   autoconf automake libtool autoconf-doc \
+                   libtool-doc libreadline-dev -y
+)
+
+wait_enter install useful commands && (
+  cmd_exist jq && exit
+  sudo apt install jq tree shellcheck peek -y
+  sudo snap install yq
+)
+
+wait_enter install and configure japanese input && (
+  sudo apt install ibus-mozc -y
+  ibus restart
+  gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'jp'), ('ibus', 'mozc-jp')]"
+)
+
+wait_enter install docker && (
+  cmd_exist docker && exit
+  sudo apt install apt-transport-https ca-certificates software-properties-common -y
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  sudo add-apt-repository \
+       "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(
+         lsb_release -cs
+       ) stable" -y
+  sudo apt install docker-ce -y
+  sudo groupadd docker
+  sudo gpasswd -a "$USER" docker
+  sudo systemctl restart docker
+  wait_enter install shellgei? && (
+    docker pull theoldmoon0602/shellgeibot
+  )
+)
+
+wait_enter install google-chrome && (
+  cmd_exist google-chrome && exit
+  wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+  sudo apt install ./google-chrome-stable_current_amd64.deb -y
+  google-chrome
+)
+
+wait_enter install keybase && (
+  cmd_exist run_keybase && exit
+  curl --remote-name https://prerelease.keybase.io/keybase_amd64.deb
+  sudo apt install ./keybase_amd64.deb -y
+  run_keybase
+  while :;do
+    wait_enter logged in? && break
+  done
+  echo "pinentry-program $(which pinentry-tty)" > ~/.gnupg/gpg-agent.conf
+  gpgconf --kill gpg-agent
+  keybase pgp export | gpg --import
+  # !tw
+  while :;do
+    { keybase pgp export --secret | gpg --allow-secret-key --import;} && break
+    echo retry; sleep 1
+  done
+)
+
+wait_enter install vscode && (
+  cmd_exist code && exit
+  curl -L https://go.microsoft.com/fwlink/?LinkID=760868 -o code_latest.deb
+  sudo apt install ./code_latest.deb -y
+  code
+)
+
+wait_enter install zoom && (
+  cmd_exist zoom && exit
+  wget http://zoom.us/client/latest/zoom_amd64.deb
+  sudo apt install ./zoom_amd64.deb -y
+  sudo apt install libgl1-mesa-glx libegl1-mesa libxcb-xtest0 -y
+  zoom
+)
+
+wait_enter install teams && (
+  cmd_exist teams && exit
+  curl -L https://go.microsoft.com/fwlink/p/?LinkID=2112886 -o teams_latest.deb
+  sudo apt install ./teams_latest.deb -y
+  teams
+)
+
+wait_enter 'install scopatz/nanorc' && (
+  file_exist ~/.nano/gitcommit.nanorc && exit
+  curl https://raw.githubusercontent.com/scopatz/nanorc/master/install.sh | sh
+)
+
+wait_enter install steam && (
+  cmd_exist steam && exit
+  curl -OL https://cdn.akamai.steamstatic.com/client/installer/steam.deb
+  sudo apt install libgl1-mesa-dri libgl1 libc6 ./steam.deb -y
+  steam &
+  wait
+)
+
+wait_enter install python && (
+  cmd_exist python && exit
+  cmd_exist pyenv && exit
+  sudo apt install libssl-dev libbz2-dev libreadline-dev libsqlite3-dev zlib1g-dev libffi-dev -y
+  git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+  cat <<'A' >> ~/.bashrc
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+which pyenv > /dev/null && {
+  eval "$(pyenv init -)"
+}
+A
+  source "${HOME}/.bashrc"
+  PY_LATEST="$(
+    pyenv install -l | tac | grep '^ *3[^a-z]*$' -m1
+  )"
+  pyenv install "${PY_LATEST-3.9.2}"
+  pyenv global "${PY_LATEST-3.9.2}"
+  pyenv rehash
+  python -V
+)
+
+wait_enter install ruby && (
+  cmd_exist ruby && exit
+  cmd_exist rbenv && exit
+  sudo apt install libssl-dev zlib1g-dev -y
+  git clone https://github.com/rbenv/rbenv.git ~/.rbenv
+  git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+  cat <<'A' >> ~/.bashrc
+export PATH="~/.rbenv/bin:$PATH"
+which rbenv > /dev/null && {
+  eval "$(rbenv init -)"
+}
+A
+  source "${HOME}/.bashrc"
+  RB2_LATEST RB3_LATEST
+  RB2_LATEST="$(
+    rbenv install -l |& tac | grep '^ *2[^a-z]*$' -m1 | awk '$0=$1'
+  )"
+  RB3_LATEST="$(
+    rbenv install -l |& tac | grep '^ *3[^a-z]*$' -m1 | awk '$0=$1'
+  )"
+  rbenv install "${RB2_LATEST-2.7.2}"
+  rbenv install "${RB3_LATEST-3.0.0}"
+  rbenv global "${RB2_LATEST-2.7.2}"
+  rbenv rehash
+  ruby -v
+)
+
+wait_enter install clisp && (
+  cmd_exist ros && exit
+  sudo apt install libcurl4-openssl-dev
+  git clone https://github.com/roswell/roswell
+  cd ./roswell
+  ./bootstrap && ./configure && make
+  sudo make install
+  yes '(exit)' | ros run
+  cd ..
+  rm -rf roswell
+)
+
+wait_enter install yarn && (
+  cmd_exist yarn && exit
+  curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+  sudo apt-add-repository 'deb https://dl.yarnpkg.com/debian/ stable main' -y
+  sudo apt install yarn
+  yarn -v
+)
+
+wait_enter setup gitconfig && (
+  file_exist ~/.gitconfig && exit
+  cat << 'A' >> ~/.netrc
+machine github.com
+login eggplants
+password xxxxxxxxxxxx
+machine gist.github.com
+login eggplants
+password xxxxxxxxxxxx
+A
+  git config --global user.name eggplants
+  git config --global user.email w10776e8w@yahoo.co.jp
+  git config --global user.signingkey "$(
+    gpg --list-secret-keys | tac | grep ^sec -m1 -B1 | head -1 | awk '$0=$1'
+  )"
+  git config --global gpg.program "$(which gpg)"
+  git config --global commit.gpgsign true
+  git config --global help.autocorrect 1
+)
+
+wait_enter install dotfiles && (
+  file_exist ~/.weatherCast.sh && exit
+  git clone https://github.com/eggplants/dotfiles
+  cd ./dotfiles
+  cp -r .*env .*rc .*sh_aliases .*.sh .byobu/ ~
+  cd ..
+  rm -rf ./dotfiles
+)
+
+wait_enter change default shell '(bash -> zsh)' && (
+  [ "$SHELL" = '/bin/zsh' ] && echo 'chsh: SHELL already changed to zsh' && exit
+  chsh -s /bin/zsh
+)
+
+echo '[FINAL: apt autoremove && autoclean]'
+sudo apt autoremove -y && sudo apt autoclean -y
+rm -i ./*.deb
