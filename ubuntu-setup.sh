@@ -21,8 +21,8 @@ function file_exist(){
 
 function wait_enter(){
   [ "$INSTALL_WAIT_OFF" -eq 1 ] && return 0
-  for((;i++<3;)){
-    printf "%0*d\n" "$i" | tr 0 v;sleep 0.15
+  for((i=0;i++<3;)){
+    printf '%0*d\n' "$i"{,} | tr 0-9 v;sleep 0.15
   }
   if [ $# -eq 0 ];then
     echo -n '[ENTER]'
@@ -215,6 +215,12 @@ machine gist.github.com
 login eggplants
 password xxxxxxxxxxxx
 A
+  gpg -e -r w10776e8w@yahoo.co.jp ~/.netrc
+  rm -i ~/.netrc
+  sudo chmod +x \
+       /usr/share/doc/git/contrib/credential/netrc/git-credential-netrc.perl
+  git config --global credential.helper \
+       /usr/share/doc/git/contrib/credential/netrc/git-credential-netrc.perl
   git config --global user.name eggplants
   git config --global user.email w10776e8w@yahoo.co.jp
   git config --global user.signingkey "$(
