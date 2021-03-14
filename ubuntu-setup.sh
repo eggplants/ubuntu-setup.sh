@@ -237,6 +237,7 @@ A
   git config --global gpg.program "$(which gpg)"
   git config --global commit.gpgsign true
   git config --global help.autocorrect 1
+  git config pull.rebase false
 )
 
 wait_enter install dotfiles && (
