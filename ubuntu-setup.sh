@@ -215,6 +215,7 @@ wait_enter install wine && (
 
 wait_enter install java && (
   sudo apt install default-jre default-jdk maven -y
+  sudo chmod +x /etc/profile.d/maven.sh
 )
 
 wait_enter setup gitconfig && (
