@@ -213,6 +213,10 @@ wait_enter install wine && (
   sudo apt install --install-recommends winehq-staging winetricks -y
 )
 
+wait_enter install java && (
+  sudo apt install default-jre default-jdk maven -y
+)
+
 wait_enter setup gitconfig && (
   file_exist ~/.gitconfig && exit
   cat << 'A' >> ~/.netrc
