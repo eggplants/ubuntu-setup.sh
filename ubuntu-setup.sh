@@ -149,7 +149,7 @@ which pyenv > /dev/null && {
   eval "$(pyenv init -)"
 }
 A
-  source "${HOME}/.bashrc"
+  source ~/.bashrc
   PY_LATEST="$(
     pyenv install -l | tac | grep '^ *3[^a-z]*$' -m1
   )"
@@ -171,7 +171,7 @@ which rbenv > /dev/null && {
   eval "$(rbenv init -)"
 }
 A
-  source "${HOME}/.bashrc"
+  source ~/.bashrc
   local RB2_LATEST RB3_LATEST
   RB2_LATEST="$(
     rbenv install -l |& tac | grep '^ *2[^a-z]*$' -m1 | awk '$0=$1'
