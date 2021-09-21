@@ -206,7 +206,7 @@ wait_enter install yarn && (
   cmd_exist yarn && exit
   curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
   sudo apt-add-repository 'deb https://dl.yarnpkg.com/debian/ stable main' -y
-  sudo apt install yarn
+  sudo apt install yarn -y
   yarn -v
 )
 
