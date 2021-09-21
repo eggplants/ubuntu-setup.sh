@@ -145,6 +145,7 @@ wait_enter install python && (
   cat <<'A' >> ~/.bashrc
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
+export PATH="~/.pyenv/shims:$PATH"
 which pyenv > /dev/null && {
   eval "$(pyenv init -)"
 }
