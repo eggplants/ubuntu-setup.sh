@@ -7,24 +7,25 @@
 
 readonly INSTALL_WAIT_OFF=${1-0}
 
-function cmd_exist(){
-  which "$1" > /dev/null && {
+function cmd_exist() {
+  which "$1" >/dev/null && {
     echo "${1}: command already exists"
   } || return 1
 }
 
-function file_exist(){
+function file_exist() {
   [ -f "$1" ] && {
     echo "${1}: file already exists"
   } || return 1
 }
 
-function wait_enter(){
+function wait_enter() {
   [[ "$INSTALL_WAIT_OFF" = 1 ]] && return 0
-  for((i=0;i++<3;)){
-    printf '%0*d\n' "$i"{,} | tr 0-9 v;sleep 0.15
-  }
-  if [ $# -eq 0 ];then
+  for ((i = 0; i++ < 3; )); do
+    printf '%0*d\n' "$i"{,} | tr 0-9 v
+    sleep 0.15
+  done
+  if [ $# -eq 0 ]; then
     echo -n '[ENTER]'
     read -r
   else
@@ -42,9 +43,9 @@ sudo apt update -y && sudo apt upgrade -y
 wait_enter install required libs with apt && (
   cmd_exist byobu && exit
   sudo apt install git curl wget w3m zsh gcc byobu \
-                   pinentry-tty build-essential \
-                   autoconf automake libtool autoconf-doc \
-                   libtool-doc libreadline-dev obs-studio -y
+    pinentry-tty build-essential \
+    autoconf automake libtool autoconf-doc \
+    libtool-doc libreadline-dev obs-studio -y
 )
 
 wait_enter install useful commands && (
@@ -56,7 +57,7 @@ wait_enter install useful commands && (
 wait_enter install gh && (
   cmd_exist gh && exit
   curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
   sudo apt update
   sudo apt install gh -y
 )
@@ -72,9 +73,9 @@ wait_enter install docker && (
   sudo apt install apt-transport-https ca-certificates software-properties-common -y
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   sudo add-apt-repository \
-       "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(
-         lsb_release -cs
-       ) stable" -y
+    "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(
+      lsb_release -cs
+    ) stable" -y
   sudo apt install docker-ce -y
   sudo groupadd docker
   sudo gpasswd -a "$USER" docker
@@ -97,17 +98,19 @@ wait_enter install keybase && (
   curl --remote-name https://prerelease.keybase.io/keybase_amd64.deb
   sudo apt install ./keybase_amd64.deb -y
   run_keybase
-  while :;do
+  while :; do
     wait_enter logged in? && break
   done
-  echo "pinentry-program $(which pinentry-tty)" > ~/.gnupg/gpg-agent.conf
+  echo "pinentry-program $(which pinentry-tty)" >~/.gnupg/gpg-agent.conf
   gpgconf --kill gpg-agent
   keybase pgp export | gpg --import
-  export GPG_TTY="$(tty)"
+  GPG_TTY="$(tty)"
+  export GPG_TTY
   # !tw
-  while :;do
-    { keybase pgp export --secret | gpg --allow-secret-key --import;} && break
-    echo retry; sleep 1
+  while :; do
+    { keybase pgp export --secret | gpg --allow-secret-key --import; } && break
+    echo retry
+    sleep 1
   done
 )
 
@@ -159,7 +162,7 @@ wait_enter install python && (
   cmd_exist pyenv && exit
   sudo apt install libssl-dev libbz2-dev libreadline-dev libsqlite3-dev zlib1g-dev libffi-dev -y
   git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-  cat <<'A' >> ~/.bashrc
+  cat <<'A' >>~/.bashrc
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 export PATH="~/.pyenv/shims:$PATH"
@@ -168,7 +171,6 @@ which pyenv > /dev/null && {
 }
 A
   source ~/.bashrc
-  local PY_LATEST
   PY_LATEST="$(
     pyenv install -l | tac | grep '^ *3[^a-z]*$' -m1
   )"
@@ -184,7 +186,7 @@ wait_enter install ruby && (
   sudo apt install libssl-dev zlib1g-dev -y
   git clone https://github.com/rbenv/rbenv.git ~/.rbenv
   git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
-  cat <<'A' >> ~/.bashrc
+  cat <<'A' >>~/.bashrc
 export PATH="~/.rbenv/bin:$PATH"
 export PATH="~/.rbenv/shims:$PATH"
 which rbenv > /dev/null && {
@@ -192,7 +194,7 @@ which rbenv > /dev/null && {
 }
 A
   source ~/.bashrc
-  local RB2_LATEST RB3_LATEST
+  # RB2_LATEST RB3_LATEST
   RB2_LATEST="$(
     rbenv install -l |& tac | grep '^ *2[^a-z]*$' -m1 | awk '$0=$1'
   )"
@@ -210,11 +212,11 @@ wait_enter install clisp && (
   cmd_exist ros && exit
   sudo apt install libcurl4-openssl-dev
   git clone https://github.com/roswell/roswell
-  cd ./roswell
+  cd ./roswell || exit 1
   ./bootstrap && ./configure && make
   sudo make install
   yes '(exit)' | ros run
-  cd ..
+  cd ../
   rm -rf roswell
 )
 
@@ -255,7 +257,7 @@ wait_enter install java && (
 
 wait_enter setup gitconfig && (
   file_exist ~/.gitconfig && exit
-  cat << 'A' >> ~/.netrc
+  cat <<'A' >>~/.netrc
 machine github.com
 login eggplants
 password xxxxxxxxxxxx
@@ -266,9 +268,9 @@ A
   gpg -e -r w10776e8w@yahoo.co.jp ~/.netrc
   rm -i ~/.netrc
   sudo chmod +x \
-       /usr/share/doc/git/contrib/credential/netrc/git-credential-netrc.perl
+    /usr/share/doc/git/contrib/credential/netrc/git-credential-netrc.perl
   git config --global credential.helper \
-       /usr/share/doc/git/contrib/credential/netrc/git-credential-netrc.perl
+    /usr/share/doc/git/contrib/credential/netrc/git-credential-netrc.perl
   git config --global user.name eggplants
   git config --global user.email w10776e8w@yahoo.co.jp
   git config --global user.signingkey "$(
@@ -286,7 +288,7 @@ wait_enter install dotfiles && (
   rm echo-sd
   file_exist ~/.weatherCast.sh && exit
   git clone https://github.com/eggplants/dotfiles
-  cd ./dotfiles
+  cd ./dotfiles || exit 1
   cp -r .*env .*rc .*sh_aliases .*.sh .byobu/ ~
   cd ..
   rm -rf ./dotfiles
