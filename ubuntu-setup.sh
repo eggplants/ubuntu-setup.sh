@@ -71,8 +71,9 @@ wait_enter install docker && (
   sudo groupadd docker
   sudo gpasswd -a "$USER" docker
   sudo systemctl restart docker
+  echo "After exit and re-login, docker can be executed without sudo."
   wait_enter install shellgei? && (
-    docker pull theoldmoon0602/shellgeibot
+    sudo docker pull theoldmoon0602/shellgeibot
   )
 )
 
