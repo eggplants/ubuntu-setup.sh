@@ -94,6 +94,7 @@ wait_enter install keybase && (
   echo "pinentry-program $(which pinentry-tty)" > ~/.gnupg/gpg-agent.conf
   gpgconf --kill gpg-agent
   keybase pgp export | gpg --import
+  export GPG_TTY="$(tty)"
   # !tw
   while :;do
     { keybase pgp export --secret | gpg --allow-secret-key --import;} && break
