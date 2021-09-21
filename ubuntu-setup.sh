@@ -44,7 +44,7 @@ wait_enter install required libs with apt && (
   sudo apt install git curl wget w3m zsh gcc byobu \
                    pinentry-tty build-essential \
                    autoconf automake libtool autoconf-doc \
-                   libtool-doc libreadline-dev -y
+                   libtool-doc libreadline-dev obs-studio -y
 )
 
 wait_enter install useful commands && (
