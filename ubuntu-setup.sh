@@ -49,7 +49,7 @@ wait_enter install required libs with apt && (
 
 wait_enter install useful commands && (
   cmd_exist jq && exit
-  sudo apt install jq tree shellcheck peek unar -y
+  sudo apt install emacs-nox jq feh tree shellcheck peek unar -y
   sudo snap install yq nkf
 )
 
@@ -136,6 +136,14 @@ wait_enter install steam && (
   sudo apt install libgl1-mesa-dri libgl1 libc6 ./steam.deb -y
   steam &
   wait
+)
+
+wait_enter install peek && (
+  cmd_exist peek && exit
+  sudo add-apt-repository ppa:peek-developers/stable
+  sudo apt update
+  sudo apt install peek -y
+  peek --version
 )
 
 wait_enter install python && (
