@@ -202,6 +202,20 @@ wait_enter install clisp && (
   rm -rf roswell
 )
 
+wait_enter install go && (
+  cmd_exist go && exit
+  wget https://dl.google.com/go/go1.17.1.linux-amd64.tar.gz
+  sudo tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz
+  export PATH=$PATH:/usr/local/go/bin
+  go --version
+  rm go1.17.1.linux-amd64.tar.gz
+)
+
+wait_enter install cargo && (
+  cmd_exist cargo && exit
+  curl https://sh.rustup.rs -sSf | sh -s -- -y
+)
+
 wait_enter install yarn && (
   cmd_exist yarn && exit
   curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
