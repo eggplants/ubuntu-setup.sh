@@ -167,6 +167,7 @@ wait_enter install ruby && (
   git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
   cat <<'A' >> ~/.bashrc
 export PATH="~/.rbenv/bin:$PATH"
+export PATH="~/.rbenv/shims:$PATH"
 which rbenv > /dev/null && {
   eval "$(rbenv init -)"
 }
