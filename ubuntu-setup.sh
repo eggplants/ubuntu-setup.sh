@@ -151,7 +151,7 @@ wait_enter install steam && (
 
 wait_enter install peek && (
   cmd_exist peek && exit
-  sudo add-apt-repository ppa:peek-developers/stable
+  sudo add-apt-repository ppa:peek-developers/stable -y
   sudo apt update
   sudo apt install peek -y
   peek --version
@@ -245,7 +245,7 @@ wait_enter install yarn && (
 wait_enter install wine && (
   cmd_exist wine && exit
   curl -sS https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
-  sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ groovy main'
+  sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ groovy main' -y
   sudo apt update
   sudo apt install --install-recommends winehq-staging winetricks -y
 )
