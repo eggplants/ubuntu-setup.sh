@@ -20,7 +20,7 @@ function file_exist(){
 }
 
 function wait_enter(){
-  [ "$INSTALL_WAIT_OFF" -eq 1 ] && return 0
+  [[ "$INSTALL_WAIT_OFF" = 1 ]] && return 0
   for((i=0;i++<3;)){
     printf '%0*d\n' "$i"{,} | tr 0-9 v;sleep 0.15
   }
