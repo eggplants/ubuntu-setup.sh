@@ -150,11 +150,12 @@ which pyenv > /dev/null && {
 }
 A
   source ~/.bashrc
+  local PY_LATEST
   PY_LATEST="$(
     pyenv install -l | tac | grep '^ *3[^a-z]*$' -m1
   )"
-  pyenv install "${PY_LATEST-3.9.2}"
-  pyenv global "${PY_LATEST-3.9.2}"
+  pyenv install "${PY_LATEST-3.9.7}"
+  pyenv global "${PY_LATEST-3.9.7}"
   pyenv rehash
   python -V
 )
