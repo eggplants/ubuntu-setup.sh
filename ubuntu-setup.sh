@@ -172,7 +172,7 @@ which rbenv > /dev/null && {
 }
 A
   source "${HOME}/.bashrc"
-  RB2_LATEST RB3_LATEST
+  local RB2_LATEST RB3_LATEST
   RB2_LATEST="$(
     rbenv install -l |& tac | grep '^ *2[^a-z]*$' -m1 | awk '$0=$1'
   )"
