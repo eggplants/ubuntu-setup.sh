@@ -22,6 +22,7 @@ $ ./create-flow-list.sh
 FIRST: apt update && upgrade
  install required libs with apt
  install useful commands
+ install gh
  install and configure japanese input
  install docker
  install shellgei?
@@ -33,9 +34,12 @@ FIRST: apt update && upgrade
  install teams
  install scopatz/nanorc
  install steam
+ install peek
  install python
  install ruby
  install clisp
+ install go
+ install cargo
  install yarn
  install wine
  install java
