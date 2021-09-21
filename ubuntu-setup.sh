@@ -247,10 +247,13 @@ A
   git config --global gpg.program "$(which gpg)"
   git config --global commit.gpgsign true
   git config --global help.autocorrect 1
-  git config pull.rebase false
+  git config --global pull.rebase false
 )
 
 wait_enter install dotfiles && (
+  wget -nv https://raw.githubusercontent.com/fumiyas/home-commands/master/echo-sd
+  sudo install -m 0755 echo-sd /usr/local/bin/echo-sd
+  rm echo-sd
   file_exist ~/.weatherCast.sh && exit
   git clone https://github.com/eggplants/dotfiles
   cd ./dotfiles
