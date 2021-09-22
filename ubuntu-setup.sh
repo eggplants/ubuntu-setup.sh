@@ -257,13 +257,15 @@ wait_enter install java && (
 
 wait_enter setup gitconfig && (
   file_exist ~/.gitconfig && exit
-  cat <<'A' >>~/.netrc
+  echo -n "github token?> "
+  read -s token
+  cat <<"A" >>~/.netrc
 machine github.com
 login eggplants
-password xxxxxxxxxxxx
+password $token
 machine gist.github.com
 login eggplants
-password xxxxxxxxxxxx
+password $token
 A
   gpg -e -r w10776e8w@yahoo.co.jp ~/.netrc
   rm -i ~/.netrc
