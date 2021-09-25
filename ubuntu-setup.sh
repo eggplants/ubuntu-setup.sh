@@ -90,7 +90,19 @@ wait_enter install google-chrome && (
   cmd_exist google-chrome && exit
   wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
   sudo apt install ./google-chrome-stable_current_amd64.deb -y
-  google-chrome
+
+  # fiahfy/youtube-live-chat-flow
+  local v
+  v="$(curl -s https://github.com/fiahfy/youtube-live-chat-flow/releases |
+             egrep "css-truncate-target.*>v" -m1 |
+             sed -E 's/^.*>(.*)<.*/\1/'
+  )"
+  cd ~/Downloads
+  mkdir -p ./.yt_flow
+  cd ./.yt_flow
+  wget "https://github.com/fiahfy/youtube-live-chat-flow/releases/download/${v}/archive.zip"
+  unzip archive.zip && rm archive.zip
+  google-chrome --load-extension="${PWD}/app"
 )
 
 wait_enter install keybase && (
@@ -155,6 +167,11 @@ wait_enter install peek && (
   sudo apt update
   sudo apt install peek -y
   peek --version
+)
+
+wait_enter install heroku && (
+  curl https://cli-assets.heroku.com/install.sh | sh
+  heroku login
 )
 
 wait_enter install python && (
@@ -303,4 +320,4 @@ wait_enter change default shell '(bash -> zsh)' && (
 
 echo '[FINAL: apt autoremove && autoclean]'
 sudo apt autoremove -y && sudo apt autoclean -y
-rm -i ./*.deb
+[ -f ./*.deb ] && rm -i ./*.deb
