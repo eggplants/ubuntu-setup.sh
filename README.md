@@ -20,8 +20,8 @@ $ ./create-flow-list.sh
 
 ```txt
 FIRST: apt update && upgrade
- install required libs with apt
- install useful commands
+ install commands with apt
+ install commands with snap
  install gh
  install and configure japanese input
  install docker
@@ -37,6 +37,7 @@ FIRST: apt update && upgrade
  install peek
  install python
  install ruby
+ install node
  install clisp
  install go
  install cargo

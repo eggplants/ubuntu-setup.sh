@@ -1,5 +1,6 @@
 #!/bin/bash
-# shellcheck disable=SC1090,SC1091
+
+# shellcheck disable=SC1090
 
 #####################
 # interactive setup #
@@ -40,17 +41,18 @@ mkdir -p ~/prog
 echo '[FIRST: apt update && upgrade]'
 sudo apt update -y && sudo apt upgrade -y
 
-wait_enter install required libs with apt && (
+wait_enter install commands with apt && (
   cmd_exist byobu && exit
-  sudo apt install git curl wget w3m zsh gcc byobu \
-    pinentry-tty build-essential \
-    autoconf automake libtool autoconf-doc \
-    libtool-doc libreadline-dev obs-studio -y
+  sudo apt install -y \
+  autoconf autoconf-doc automake build-essential byobu \
+  curl emacs-nox feh gcc git \
+  jq libreadline-dev libtool libtool-doc obs-studio \
+  peek pinentry-tty shellcheck sl tree unar uniutils \
+  w3m wget xsel zsh
 )
 
-wait_enter install useful commands && (
-  cmd_exist jq && exit
-  sudo apt install emacs-nox jq feh tree shellcheck peek unar -y
+wait_enter install commands with snap && (
+  cmd_exist yq && exit
   sudo snap install yq nkf
 )
 
@@ -92,14 +94,13 @@ wait_enter install google-chrome && (
   sudo apt install ./google-chrome-stable_current_amd64.deb -y
 
   # fiahfy/youtube-live-chat-flow
-  local v
   v="$(curl -s https://github.com/fiahfy/youtube-live-chat-flow/releases |
-             egrep "css-truncate-target.*>v" -m1 |
+             grep -E "css-truncate-target.*>v" -m1 |
              sed -E 's/^.*>(.*)<.*/\1/'
   )"
-  cd ~/Downloads
+  cd ~/Downloads || exit 1
   mkdir -p ./.yt_flow
-  cd ./.yt_flow
+  cd ./.yt_flow || exit 1
   wget "https://github.com/fiahfy/youtube-live-chat-flow/releases/download/${v}/archive.zip"
   unzip archive.zip && rm archive.zip
   google-chrome --load-extension="${PWD}/app"
@@ -205,8 +206,8 @@ which rbenv > /dev/null && {
   eval "$(rbenv init -)"
 }
 A
-  source ~/.bashrc
-  # RB2_LATEST RB3_LATEST
+  source "$HOME/.bashrc"
+
   RB2_LATEST="$(
     rbenv install -l |& tac | grep '^ *2[^a-z]*$' -m1 | awk '$0=$1'
   )"
@@ -280,14 +281,16 @@ wait_enter install java && (
 wait_enter setup gitconfig && (
   file_exist ~/.gitconfig && exit
   echo -n "github token?> "
-  read -s token
+  read -s -r token
+  echo -n "token: "
+  echo -n "$token" | wc
   cat <<"A" >>~/.netrc
 machine github.com
 login eggplants
-password $token
+password ${token}
 machine gist.github.com
 login eggplants
-password $token
+password ${token}
 A
   gpg -e -r w10776e8w@yahoo.co.jp ~/.netrc
   rm -i ~/.netrc
@@ -325,4 +328,6 @@ wait_enter change default shell '(bash -> zsh)' && (
 
 echo '[FINAL: apt autoremove && autoclean]'
 sudo apt autoremove -y && sudo apt autoclean -y
-[ -f ./*.deb ] && rm -i ./*.deb
+for i in ./*.deb; do
+  rm -i "$i"
+done
