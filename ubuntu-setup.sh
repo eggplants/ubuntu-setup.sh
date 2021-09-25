@@ -169,11 +169,6 @@ wait_enter install peek && (
   peek --version
 )
 
-wait_enter install heroku && (
-  curl https://cli-assets.heroku.com/install.sh | sh
-  heroku login
-)
-
 wait_enter install python && (
   cmd_exist python && exit
   cmd_exist pyenv && exit
@@ -223,6 +218,16 @@ A
   rbenv global "${RB2_LATEST-2.7.2}"
   rbenv rehash
   ruby -v
+)
+
+wait_enter install node && (
+  cmd_exist n && exit
+  sudo apt install nodejs npm -y
+  sudo npm install bats n yarn -g
+  sudo n stable
+  sudo apt purge nodejs npm -y
+  curl https://cli-assets.heroku.com/install.sh | sh
+  heroku login
 )
 
 wait_enter install clisp && (
