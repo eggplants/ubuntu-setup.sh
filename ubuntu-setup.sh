@@ -79,6 +79,16 @@ wait_enter install docker && (
       lsb_release -cs
     ) stable" -y
   sudo apt install docker-ce -y
+
+  compose_release="https://github.com/docker/compose/releases"
+  curl \
+       -o docker-compose \
+       -L "${compose_release}/download/$(
+           curl -sI "${compose_release}/latest" |
+           sed -nE '/^location: /s_.*releases/tag/([0-9]+\.[0-9]+\.[0-9]+).*$_\1_p'
+       )/docker-compose-$(uname -s)-$(uname -m)"
+  chmod +x docker-compose
+  sudo mv docker-compose /usr/local/bin
   sudo groupadd docker
   sudo gpasswd -a "$USER" docker
   sudo systemctl restart docker
