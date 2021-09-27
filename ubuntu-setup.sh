@@ -44,11 +44,11 @@ sudo apt update -y && sudo apt upgrade -y
 wait_enter install commands with apt && (
   cmd_exist byobu && exit
   sudo apt install -y \
-  autoconf autoconf-doc automake build-essential byobu \
-  curl emacs-nox feh gcc git \
-  jq libreadline-dev libtool libtool-doc obs-studio \
-  peek pinentry-tty shellcheck sl tree unar uniutils \
-  w3m wget xsel zsh
+    autoconf autoconf-doc automake build-essential byobu \
+    curl emacs-nox feh gcc git \
+    jq libreadline-dev libtool libtool-doc obs-studio \
+    peek pinentry-tty shellcheck sl tree unar uniutils \
+    w3m wget xsel zsh
 )
 
 wait_enter install commands with snap && (
@@ -82,11 +82,11 @@ wait_enter install docker && (
 
   compose_release="https://github.com/docker/compose/releases"
   curl \
-       -o docker-compose \
-       -L "${compose_release}/download/$(
-           curl -sI "${compose_release}/latest" |
-           sed -nE '/^location: /s_.*releases/tag/([0-9]+\.[0-9]+\.[0-9]+).*$_\1_p'
-       )/docker-compose-$(uname -s)-$(uname -m)"
+    -o docker-compose \
+    -L "${compose_release}/download/$(
+      curl -sI "${compose_release}/latest" |
+        sed -nE '/^location: /s_.*releases/tag/([0-9]+\.[0-9]+\.[0-9]+).*$_\1_p'
+    )/docker-compose-$(uname -s)-$(uname -m)"
   chmod +x docker-compose
   sudo mv docker-compose /usr/local/bin
   sudo groupadd docker
@@ -104,9 +104,10 @@ wait_enter install google-chrome && (
   sudo apt install ./google-chrome-stable_current_amd64.deb -y
 
   # fiahfy/youtube-live-chat-flow
-  v="$(curl -s https://github.com/fiahfy/youtube-live-chat-flow/releases |
-             grep -E "css-truncate-target.*>v" -m1 |
-             sed -E 's/^.*>(.*)<.*/\1/'
+  v="$(
+    curl -s https://github.com/fiahfy/youtube-live-chat-flow/releases |
+      grep -E "css-truncate-target.*>v" -m1 |
+      sed -E 's/^.*>(.*)<.*/\1/'
   )"
   cd ~/Downloads || exit 1
   mkdir -p ./.yt_flow
@@ -163,7 +164,8 @@ wait_enter install slack && (
   cmd_exist slack && exit
   latest_slack="$(
     curl -sL slack.com/downloads/linux |
-    sed -nE 's/.*text__version">[^<]+([0-9]+\.[0-9]+\.[0-9]+)<.*/\1/p')"
+      sed -nE 's/.*text__version">[^<]+([0-9]+\.[0-9]+\.[0-9]+)<.*/\1/p'
+  )"
   wget "https://downloads.slack-edge.com/releases/linux/${latest_slack}/prod/x64/slack-desktop-${latest_slack}-amd64.deb"
   sudo apt install ./slack*amd64.deb -y
   slack
@@ -267,9 +269,10 @@ wait_enter install go && (
   cmd_exist go && exit
   latest_go="$(
     curl -sL https://golang.org/dl |
-    grep linux-amd64 |
-    sed -nE 's_.*/dl/go([0-9]+\.[0-9]+\.[0-9]+)\.linux-amd64\.tar\.gz.*_\1_p' |
-    head -1)"
+      grep linux-amd64 |
+      sed -nE 's_.*/dl/go([0-9]+\.[0-9]+\.[0-9]+)\.linux-amd64\.tar\.gz.*_\1_p' |
+      head -1
+  )"
   wget "https://dl.google.com/go/go${latest_go}.linux-amd64.tar.gz"
   sudo tar -C /usr/local -xzf "go${latest_go}.linux-amd64.tar.gz"
   export PATH=$PATH:/usr/local/go/bin

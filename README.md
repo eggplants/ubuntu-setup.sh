@@ -5,15 +5,15 @@ A setup script for Ubuntu on PC
 ## Run
 
 ```bash
-$ ./ubuntu-setup.sh
+./ubuntu-setup.sh
 ```
 
 ## Lint
 
 ```bash
-$ shellcheck ubuntu-setup.sh
-$ bash -n ubuntu-setup.sh
-$ ./create-flow-list.sh
+shellcheck ubuntu-setup.sh
+bash -n ubuntu-setup.sh
+./create-flow-list.sh
 ```
 
 ## Flow
