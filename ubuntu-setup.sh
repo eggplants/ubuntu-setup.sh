@@ -6,7 +6,7 @@
 # interactive setup #
 #####################
 
-readonly INSTALL_WAIT_OFF=${1-0}
+readonly INSTALL_WAIT_OFF="${1-0}"
 
 function cmd_exist() {
   which "$1" >/dev/null && {
@@ -149,6 +149,16 @@ wait_enter install teams && (
   teams
 )
 
+wait_enter install slack && (
+  cmd_exist slack && exit
+  latest_slack="$(
+    curl -sL slack.com/downloads/linux |
+    sed -nE 's/.*text__version">[^<]+([0-9]+\.[0-9]+\.[0-9]+)<.*/\1/p')"
+  wget "https://downloads.slack-edge.com/releases/linux/${latest_slack}/prod/x64/slack-desktop-${latest_slack}-amd64.deb"
+  sudo apt install ./slack*amd64.deb -y
+  slack
+)
+
 wait_enter 'install scopatz/nanorc' && (
   file_exist ~/.nano/gitcommit.nanorc && exit
   curl https://raw.githubusercontent.com/scopatz/nanorc/master/install.sh | sh
@@ -245,11 +255,16 @@ wait_enter install clisp && (
 
 wait_enter install go && (
   cmd_exist go && exit
-  wget https://dl.google.com/go/go1.17.1.linux-amd64.tar.gz
-  sudo tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz
+  latest_go="$(
+    curl -sL https://golang.org/dl |
+    grep linux-amd64 |
+    sed -nE 's_.*/dl/go([0-9]+\.[0-9]+\.[0-9]+)\.linux-amd64\.tar\.gz.*_\1_p' |
+    head -1)"
+  wget "https://dl.google.com/go/go${latest_go}.linux-amd64.tar.gz"
+  sudo tar -C /usr/local -xzf "go${latest_go}.linux-amd64.tar.gz"
   export PATH=$PATH:/usr/local/go/bin
   go --version
-  rm go1.17.1.linux-amd64.tar.gz
+  rm go*.linux-amd64.tar.gz
 )
 
 wait_enter install cargo && (
