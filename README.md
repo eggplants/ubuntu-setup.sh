@@ -32,6 +32,7 @@ FIRST: apt update && upgrade
  install vscode
  install zoom
  install teams
+ install slack
  install scopatz/nanorc
  install steam
  install peek
@@ -47,5 +48,6 @@ FIRST: apt update && upgrade
  setup gitconfig
  install dotfiles
  change default shell (bash -> zsh)
+ install runcat
 FINAL: apt autoremove && autoclean
 ```

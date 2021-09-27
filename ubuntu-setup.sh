@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# shellcheck disable=SC1090
-
 #####################
 # interactive setup #
 #####################
@@ -85,7 +83,7 @@ wait_enter install docker && (
     -o docker-compose \
     -L "${compose_release}/download/$(
       curl -sI "${compose_release}/latest" |
-        sed -nE '/^location: /s_.*releases/tag/([0-9]+\.[0-9]+\.[0-9]+).*$_\1_p'
+        sed -nE "/^location: /s_.*releases/tag/([0-9]+\.[0-9]+\.[0-9]+).*\$_\1_p"
     )/docker-compose-$(uname -s)-$(uname -m)"
   chmod +x docker-compose
   sudo mv docker-compose /usr/local/bin
@@ -205,6 +203,7 @@ which pyenv > /dev/null && {
   eval "$(pyenv init -)"
 }
 A
+  # shellcheck source=/home/eggplants/.bashrc disable=SC1091
   source ~/.bashrc
   PY_LATEST="$(
     pyenv install -l | tac | grep '^ *3[^a-z]*$' -m1
@@ -228,7 +227,8 @@ which rbenv > /dev/null && {
   eval "$(rbenv init -)"
 }
 A
-  source "$HOME/.bashrc"
+  # shellcheck source=/home/eggplants/.bashrc disable=SC1091
+  source ~/.bashrc
 
   RB2_LATEST="$(
     rbenv install -l |& tac | grep '^ *2[^a-z]*$' -m1 | awk '$0=$1'
@@ -354,8 +354,23 @@ wait_enter change default shell '(bash -> zsh)' && (
   chsh -s /bin/zsh
 )
 
+wait_enter install runcat && (
+  gnome-extensions list | grep -q runcat && exit
+  wget https://github.com/win0err/gnome-runcat/releases/download/v12/runcat@kolesnikov.se.zip
+  gnome-extensions install ./runcat@kolesnikov.se.zip --force
+  rm runcat*.zip
+  echo 'After reloading gnome-shell,'
+  echo 'Run: gnome-extenisons enable runcat@kolesnikov.se'
+)
+
 echo '[FINAL: apt autoremove && autoclean]'
 sudo apt autoremove -y && sudo apt autoclean -y
 for i in ./*.deb; do
   rm -i "$i"
 done
+
+echo "[reboot?]"
+read -r i
+if [ "$i" = y ]; then
+  reboot
+fi
