@@ -9,7 +9,7 @@
 readonly INSTALL_WAIT_OFF="${1-0}"
 
 function cmd_exist() {
-  which "$1" >/dev/null && {
+  which "$1" > /dev/null && {
     echo "${1}: command already exists"
   } || return 1
 }
@@ -21,7 +21,7 @@ function file_exist() {
 }
 
 function wait_enter() {
-  [[ "$INSTALL_WAIT_OFF" = 1 ]] && return 0
+  [[ $INSTALL_WAIT_OFF == 1 ]] && return 0
   for ((i = 0; i++ < 3; )); do
     printf '%0*d\n' "$i"{,} | tr 0-9 v
     sleep 0.15
@@ -32,7 +32,7 @@ function wait_enter() {
   else
     echo -n "[${*} - ENTER Y/n]:"
     read -r sel
-    [[ "$sel" =~ Y|y ]] && return 0 || return 1
+    [[ $sel =~ Y|y ]] && return 0 || return 1
   fi
 }
 
@@ -59,7 +59,7 @@ wait_enter install commands with snap && (
 wait_enter install gh && (
   cmd_exist gh && exit
   curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
   sudo apt update
   sudo apt install gh -y
 )
@@ -125,7 +125,7 @@ wait_enter install keybase && (
   while :; do
     wait_enter logged in? && break
   done
-  echo "pinentry-program $(which pinentry-tty)" >~/.gnupg/gpg-agent.conf
+  echo "pinentry-program $(which pinentry-tty)" > ~/.gnupg/gpg-agent.conf
   gpgconf --kill gpg-agent
   keybase pgp export | gpg --import
   GPG_TTY="$(tty)"
@@ -197,7 +197,7 @@ wait_enter install python && (
   cmd_exist pyenv && exit
   sudo apt install libssl-dev libbz2-dev libreadline-dev libsqlite3-dev zlib1g-dev libffi-dev -y
   git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-  cat <<'A' >>~/.bashrc
+  cat << 'A' >> ~/.bashrc
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 export PATH="~/.pyenv/shims:$PATH"
@@ -221,7 +221,7 @@ wait_enter install ruby && (
   sudo apt install libssl-dev zlib1g-dev -y
   git clone https://github.com/rbenv/rbenv.git ~/.rbenv
   git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
-  cat <<'A' >>~/.bashrc
+  cat << 'A' >> ~/.bashrc
 export PATH="~/.rbenv/bin:$PATH"
 export PATH="~/.rbenv/shims:$PATH"
 which rbenv > /dev/null && {
@@ -312,7 +312,7 @@ wait_enter setup gitconfig && (
   read -s -r token
   echo -n "token: "
   echo -n "$token" | wc
-  cat <<"A" >>~/.netrc
+  cat << "A" >> ~/.netrc
 machine github.com
 login eggplants
 password ${token}
