@@ -45,7 +45,8 @@ wait_enter install commands with apt && (
     autoconf autoconf-doc automake build-essential byobu \
     curl emacs-nox feh gcc git \
     jq libreadline-dev libtool libtool-doc obs-studio \
-    peek pinentry-tty shellcheck sl tree unar uniutils \
+    peek pinentry-tty python3-tk shellcheck sl \
+    tk-dev tree unar uniutils \
     w3m wget xsel zsh
 )
 
