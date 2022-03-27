@@ -46,13 +46,8 @@ wait_enter install commands with apt && (
     curl emacs-nox feh gcc git \
     jq libreadline-dev libtool libtool-doc obs-studio \
     peek pinentry-tty python3-tk shellcheck sl \
-    tk-dev tree unar uniutils \
+    tk-dev tree unar uniutils nkf \
     w3m wget xsel zsh
-)
-
-wait_enter install commands with snap && (
-  cmd_exist yq && exit
-  sudo snap install yq nkf
 )
 
 wait_enter install gh && (
@@ -71,13 +66,7 @@ wait_enter install and configure japanese input && (
 
 wait_enter install docker && (
   cmd_exist docker && exit
-  sudo apt install apt-transport-https ca-certificates software-properties-common -y
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-  sudo add-apt-repository \
-    "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(
-      lsb_release -cs
-    ) stable" -y
-  sudo apt install docker-ce -y
+  sudo apt install docker.io -y
 
   compose_release="https://github.com/docker/compose/releases"
   curl \
@@ -152,12 +141,14 @@ wait_enter install zoom && (
   zoom
 )
 
-wait_enter install teams && (
-  cmd_exist teams && exit
-  curl -L https://go.microsoft.com/fwlink/p/?LinkID=2112886 -o teams_latest.deb
-  sudo apt install ./teams_latest.deb -y
-  teams
+wait_enter install libreoffice && (
+  cmd_exist libreoffice && exit
+  sudo apt install -y \
+    libreoffice libreoffice-l10n-ja libreoffice-dmaths libreoffice-ogltrans \
+    libreoffice-writer2xhtml libreoffice-pdfimport libreoffice-help-ja
 )
+
+
 
 wait_enter install slack && (
   cmd_exist slack && exit
@@ -192,20 +183,26 @@ wait_enter install peek && (
 )
 
 wait_enter install python && (
-  cmd_exist python && exit
   cmd_exist pyenv && exit
   sudo apt install libssl-dev libbz2-dev libreadline-dev libsqlite3-dev zlib1g-dev libffi-dev -y
   git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+
+  export PYENV_ROOT="$HOME/.pyenv"
+  # shellcheck disable=SC2030,SC2031
+  export PATH="$PYENV_ROOT/bin:$PATH"
+  export PATH="$HOME/.pyenv/shims:$PATH"
+  eval "$(pyenv init -)"
+
+  git clone https://github.com/pyenv/pyenv-update.git "$(pyenv root)/plugins/pyenv-update"
+
   cat << 'A' >> ~/.bashrc
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
-export PATH="~/.pyenv/shims:$PATH"
+export PATH="$HOME/.pyenv/shims:$PATH"
 which pyenv > /dev/null && {
   eval "$(pyenv init -)"
 }
 A
-  # shellcheck source=/home/eggplants/.bashrc disable=SC1091
-  source ~/.bashrc
   PY_LATEST="$(
     pyenv install -l | tac | grep '^ *3[^a-z]*$' -m1
   )"
@@ -216,11 +213,17 @@ A
 )
 
 wait_enter install ruby && (
-  cmd_exist ruby && exit
   cmd_exist rbenv && exit
   sudo apt install libssl-dev zlib1g-dev -y
   git clone https://github.com/rbenv/rbenv.git ~/.rbenv
   git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+
+  # shellcheck disable=SC2030,SC2031
+  export PATH="$HOME/.rbenv/bin:$PATH"
+  # shellcheck disable=SC2031
+  export PATH="$HOME/.rbenv/shims:$PATH"
+  eval "$(rbenv init -)"
+
   cat << 'A' >> ~/.bashrc
 export PATH="~/.rbenv/bin:$PATH"
 export PATH="~/.rbenv/shims:$PATH"
@@ -228,9 +231,6 @@ which rbenv > /dev/null && {
   eval "$(rbenv init -)"
 }
 A
-  # shellcheck source=/home/eggplants/.bashrc disable=SC1091
-  source ~/.bashrc
-
   RB2_LATEST="$(
     rbenv install -l |& tac | grep '^ *2[^a-z]*$' -m1 | awk '$0=$1'
   )"
@@ -276,7 +276,8 @@ wait_enter install go && (
   )"
   wget "https://dl.google.com/go/go${latest_go}.linux-amd64.tar.gz"
   sudo tar -C /usr/local -xzf "go${latest_go}.linux-amd64.tar.gz"
-  export PATH=$PATH:/usr/local/go/bin
+  # shellcheck disable=SC2031
+  export PATH="$PATH:/usr/local/go/bin"
   go --version
   rm go*.linux-amd64.tar.gz
 )
@@ -286,20 +287,19 @@ wait_enter install cargo && (
   curl https://sh.rustup.rs -sSf | sh -s -- -y
 )
 
-wait_enter install yarn && (
-  cmd_exist yarn && exit
-  curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-  sudo apt-add-repository 'deb https://dl.yarnpkg.com/debian/ stable main' -y
-  sudo apt install yarn -y
-  yarn -v
-)
-
 wait_enter install wine && (
   cmd_exist wine && exit
-  curl -sS https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
-  sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ groovy main' -y
+  sudo dpkg --add-architecture i386
+  sudo apt install libfaudio0 -y
+  wget -nc https://dl.winehq.org/wine-builds/winehq.key
+  sudo apt-key add winehq.key
+  rm winehq.key
+  sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ '"$(
+    lsb_release -c | cut -f2
+  )"' main'
   sudo apt update
-  sudo apt install --install-recommends winehq-staging winetricks -y
+  sudo apt install --install-recommends winehq-devel winetricks -y
+  winecfg
 )
 
 wait_enter install java && (
@@ -311,9 +311,7 @@ wait_enter setup gitconfig && (
   file_exist ~/.gitconfig && exit
   echo -n "github token?> "
   read -s -r token
-  echo -n "token: "
-  echo -n "$token" | wc
-  cat << "A" >> ~/.netrc
+  cat << A >> ~/.netrc
 machine github.com
 login eggplants
 password ${token}

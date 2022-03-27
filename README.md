@@ -21,7 +21,6 @@ bash -n ubuntu-setup.sh
 ```txt
 FIRST: apt update && upgrade
  install commands with apt
- install commands with snap
  install gh
  install and configure japanese input
  install docker
@@ -31,7 +30,7 @@ FIRST: apt update && upgrade
  logged in?
  install vscode
  install zoom
- install teams
+ install libreoffice
  install slack
  install scopatz/nanorc
  install steam
@@ -42,7 +41,6 @@ FIRST: apt update && upgrade
  install clisp
  install go
  install cargo
- install yarn
  install wine
  install java
  setup gitconfig
