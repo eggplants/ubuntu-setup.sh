@@ -43,7 +43,7 @@ wait_enter install commands with apt && (
   cmd_exist byobu && exit
   sudo apt install -y \
     autoconf autoconf-doc automake build-essential byobu \
-    curl emacs-nox feh gcc git \
+    curl emacs-nox feh gcc git imagemagick \
     jq libreadline-dev libtool libtool-doc obs-studio \
     peek pinentry-tty python3-tk shellcheck sl \
     tk-dev tree unar uniutils nkf \
