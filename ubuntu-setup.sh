@@ -292,7 +292,7 @@ wait_enter install wine && (
   sudo dpkg --add-architecture i386
   sudo apt install libfaudio0 -y
   wget -nc https://dl.winehq.org/wine-builds/winehq.key
-  sudo apt-key add winehq.key
+  sudo mv winehq.key /usr/share/keyrings/winehq-archive.key
   rm winehq.key
   sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ '"$(
     lsb_release -c | cut -f2
