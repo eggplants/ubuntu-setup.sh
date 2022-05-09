@@ -44,7 +44,7 @@ wait_enter install commands with apt && (
   sudo apt install -y \
     autoconf autoconf-doc automake build-essential byobu \
     curl emacs-nox feh gcc git imagemagick \
-    jq libreadline-dev libtool libtool-doc obs-studio \
+    jq libreadline-dev libtool libtool-doc mozc-utils-gui obs-studio \
     peek pinentry-tty python3-tk shellcheck sl \
     tk-dev tree unar uniutils nkf \
     w3m wget xsel zsh
