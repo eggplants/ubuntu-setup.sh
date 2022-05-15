@@ -289,6 +289,13 @@ wait_enter install cargo && (
   cargo install alacritty
   sudo update-alternatives --install /usr/bin/x-terminal-emulator \
   x-terminal-emulator /usr/local/bin/alacritty 50
+  mkdir -p ~/.config/alacritty
+  curl -o- https://codeload.github.com/eendroroy/alacritty-theme/tar.gz/refs/heads/master |
+    tar xzf - alacritty-theme-master/themes
+  mv alacritty-theme-master ~/.config/alacritty
+  echo "import:" >> ~/.config/alacritty/alacritty.yml
+  find ~/.config/alacritty/alacritty-theme-master/themes -type f -name '*ml' |
+    sed 's/^/  #- /' >> ~/.config/alacritty/alacritty.yml
 )
 
 wait_enter install wine && (
