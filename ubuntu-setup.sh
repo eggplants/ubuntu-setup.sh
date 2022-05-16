@@ -193,16 +193,16 @@ wait_enter install python && (
   export PATH="$PYENV_ROOT/bin:$PATH"
   export PATH="$HOME/.pyenv/shims:$PATH"
   eval "$(pyenv init -)"
-
-  git clone https://github.com/pyenv/pyenv-update.git "$(pyenv root)/plugins/pyenv-update"
+  mkdir ~/.pyenv/plugins
+  git clone https://github.com/pyenv/pyenv-update.git ~/.pyenv/plugins/pyenv-update
 
   cat << 'A' >> ~/.bashrc
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 export PATH="$HOME/.pyenv/shims:$PATH"
-which pyenv > /dev/null && {
+if command -v pyenv &> /dev/null; then
   eval "$(pyenv init -)"
-}
+fi
 A
   PY_LATEST="$(
     pyenv install -l | tac | grep '^ *3[^a-z]*$' -m1
@@ -218,6 +218,7 @@ wait_enter install ruby && (
   sudo apt install libssl-dev zlib1g-dev -y
   git clone https://github.com/rbenv/rbenv.git ~/.rbenv
   git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+  git clone https://github.com/rkh/rbenv-update.git ~/.rbenv/plugins/rbenv-update
 
   # shellcheck disable=SC2030,SC2031
   export PATH="$HOME/.rbenv/bin:$PATH"
