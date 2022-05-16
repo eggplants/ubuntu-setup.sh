@@ -43,7 +43,7 @@ wait_enter install commands with apt && (
   cmd_exist byobu && exit
   sudo apt install -y \
     autoconf autoconf-doc automake build-essential byobu \
-    curl cmake emacs-nox feh gcc git imagemagick \
+    curl cmake emacs-nox feh gcc gnome-tweaks git imagemagick \
     jq libreadline-dev libtool libtool-doc libfreetype6-dev \
     libfontconfig1-dev libxcb-xfixes0-devmozc-utils-gui obs-studio \
     peek pinentry-tty pkg-config python3-tk shellcheck sl \
@@ -286,6 +286,7 @@ wait_enter install go && (
 wait_enter install cargo && (
   cmd_exist cargo && exit
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  source $HOME/.cargo/env
   cargo install alacritty
   sudo update-alternatives --install /usr/bin/x-terminal-emulator \
   x-terminal-emulator /usr/local/bin/alacritty 50
