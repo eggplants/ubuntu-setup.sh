@@ -286,10 +286,10 @@ wait_enter install go && (
 wait_enter install cargo && (
   cmd_exist cargo && exit
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-  source $HOME/.cargo/env
+  source ~/.cargo/env
   cargo install alacritty
   sudo update-alternatives --install /usr/bin/x-terminal-emulator \
-  x-terminal-emulator /usr/local/bin/alacritty 50
+  x-terminal-emulator ~/.cargo/bin/alacritty 50
   mkdir -p ~/.config/alacritty
   curl -o- https://codeload.github.com/eendroroy/alacritty-theme/tar.gz/refs/heads/master |
     tar xzf - alacritty-theme-master/themes
