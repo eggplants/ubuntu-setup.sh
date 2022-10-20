@@ -44,9 +44,8 @@ wait_enter install commands with apt && (
   sudo apt install -y \
     autoconf autoconf-doc automake build-essential byobu \
     curl cmake emacs-nox feh gcc gnome-tweaks git imagemagick \
-    jq libreadline-dev libtool libtool-doc libfreetype6-dev \
-    libfontconfig1-dev libxcb-xfixes0-devmozc-utils-gui obs-studio \
-    peek pinentry-tty pkg-config python3-tk shellcheck sl \
+    jq libreadline-dev libtool libtool-doc libfreetype6-dev libfontconfig1-dev \
+    pinentry-tty pkg-config python3-tk shellcheck sl \
     tk-dev tree unar uniutils nkf \
     w3m wget xsel zsh
 )
@@ -94,7 +93,7 @@ wait_enter install google-chrome && (
 
   # fiahfy/youtube-live-chat-flow
   v="$(
-    curl -s https://github.com/fiahfy/youtube-live-chat-flow/releases |
+    curl -s https://github.com/eggplants/youtube-live-chat-flow/releases |
       grep -E "css-truncate-target.*>v" -m1 |
       sed -E 's/^.*>(.*)<.*/\1/'
   )"
@@ -133,23 +132,6 @@ wait_enter install vscode && (
   sudo apt install ./code_latest.deb -y
   code
 )
-
-wait_enter install zoom && (
-  cmd_exist zoom && exit
-  wget http://zoom.us/client/latest/zoom_amd64.deb
-  sudo apt install ./zoom_amd64.deb -y
-  sudo apt install libgl1-mesa-glx libegl1-mesa libxcb-xtest0 -y
-  zoom
-)
-
-wait_enter install libreoffice && (
-  cmd_exist libreoffice && exit
-  sudo apt install -y \
-    libreoffice libreoffice-l10n-ja libreoffice-dmaths libreoffice-ogltrans \
-    libreoffice-writer2xhtml libreoffice-pdfimport libreoffice-help-ja
-)
-
-
 
 wait_enter install slack && (
   cmd_exist slack && exit
