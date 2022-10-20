@@ -29,8 +29,6 @@ FIRST: apt update && upgrade
  install keybase
  logged in?
  install vscode
- install zoom
- install libreoffice
  install slack
  install scopatz/nanorc
  install steam
