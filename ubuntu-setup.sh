@@ -45,7 +45,7 @@ wait_enter install commands with apt && (
     autoconf autoconf-doc automake build-essential byobu \
     curl cmake emacs-nox feh gcc gnome-tweaks git imagemagick \
     jq libreadline-dev libtool libtool-doc libfreetype6-dev libfontconfig1-dev \
-    pinentry-tty pkg-config python3-tk shellcheck sl \
+    liblzma-dev pinentry-tty pkg-config python3-tk shellcheck sl \
     tk-dev tree unar uniutils nkf \
     w3m wget xsel zsh
 )
