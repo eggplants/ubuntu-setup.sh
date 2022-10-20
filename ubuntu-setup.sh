@@ -284,14 +284,14 @@ wait_enter install cargo && (
 
 wait_enter install wine && (
   cmd_exist wine && exit
+  
+  CODENAME="$(lsb_release -c | cut -f2)"
   sudo dpkg --add-architecture i386
   sudo apt install libfaudio0 -y
   wget -nc https://dl.winehq.org/wine-builds/winehq.key
   sudo mv winehq.key /usr/share/keyrings/winehq-archive.key
-  rm winehq.key
-  sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ '"$(
-    lsb_release -c | cut -f2
-  )"' main'
+  wget -nc "https://dl.winehq.org/wine-builds/ubuntu/dists/$(CODENAME)/winehq-$(CODENAME).sources"
+  sudo mv "winehq-$(CODENAME).sources" /etc/apt/sources.list.d/
   sudo apt update
   sudo apt install --install-recommends winehq-devel winetricks -y
   winecfg
