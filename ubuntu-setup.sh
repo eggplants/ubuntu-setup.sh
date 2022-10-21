@@ -288,10 +288,9 @@ wait_enter install wine && (
   CODENAME="$(lsb_release -c | cut -f2)"
   sudo dpkg --add-architecture i386
   sudo apt install libfaudio0 -y
-  wget -nc https://dl.winehq.org/wine-builds/winehq.key
-  sudo mv winehq.key /usr/share/keyrings/winehq-archive.key
-  wget -nc "https://dl.winehq.org/wine-builds/ubuntu/dists/$(CODENAME)/winehq-$(CODENAME).sources"
-  sudo mv "winehq-$(CODENAME).sources" /etc/apt/sources.list.d/
+  sudo mkdir -pm755 /etc/apt/keyrings
+  sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+  sudo wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources
   sudo apt update
   sudo apt install --install-recommends winehq-devel winetricks -y
   winecfg
