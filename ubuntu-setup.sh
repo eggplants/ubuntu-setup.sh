@@ -294,10 +294,11 @@ wait_enter install wine && (
   sudo apt update
   sudo apt install --install-recommends winehq-devel winetricks -y
   winecfg
+  winetricks fonts allfonts
 )
 
 wait_enter install java && (
-  sudo apt install default-jre default-jdk maven -y
+  sudo apt install default-jre openjdk-17-jdk maven -y
   sudo chmod +x /etc/profile.d/maven.sh
 )
 
