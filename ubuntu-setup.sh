@@ -66,17 +66,10 @@ wait_enter install and configure japanese input && (
 
 wait_enter install docker && (
   cmd_exist docker && exit
-  sudo apt install docker.io -y
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  sudo apt update && sudo apt install docker-ce docker-ce-cli containerd.io -y
 
-  compose_release="https://github.com/docker/compose/releases"
-  curl \
-    -o docker-compose \
-    -L "${compose_release}/download/$(
-      curl -sI "${compose_release}/latest" |
-        sed -nE "/^location: /s_.*releases/tag/([0-9]+\.[0-9]+\.[0-9]+).*\$_\1_p"
-    )/docker-compose-$(uname -s)-$(uname -m)"
-  chmod +x docker-compose
-  sudo mv docker-compose /usr/local/bin
   sudo groupadd docker
   sudo gpasswd -a "$USER" docker
   sudo systemctl restart docker
