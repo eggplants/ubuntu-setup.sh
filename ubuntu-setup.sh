@@ -296,6 +296,10 @@ zinit light zdharma-continuum/fast-syntax-highlighting
 zinit light zdharma-continuum/history-search-multi-word
 zinit light zsh-users/zsh-autosuggestions
 zinit light zsh-users/zsh-completions
+
+# if (which zprof > /dev/null) ;then
+#   zprof | less
+# fi
 A
 
 # zsh
@@ -308,7 +312,10 @@ cat <<'A' <~/.zshrc >.zshrc.tmp
 
 # completion
 autoload -U compinit
-compinit -u
+if [ "$(find ~/.zcompdump -mtime 1)" ] ; then
+    compinit -u
+fi
+compinit -uC
 zstyle ':completion:*' menu select
 
 # enable opts
