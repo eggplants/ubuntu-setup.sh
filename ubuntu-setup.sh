@@ -234,18 +234,16 @@ ros install sbcl-bin
 sudo apt install default-jre openjdk-21-jdk maven -y
 
 # wine
-: || {
 CODENAME="$(lsb_release -c | cut -f2)"
 sudo dpkg --add-architecture i386
 sudo apt install libfaudio0 -y
 sudo mkdir -pm755 /etc/apt/keyrings
 sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
-sudo wget -NP /etc/apt/sources.list.d/ "https://dl.winehq.org/wine-builds/ubuntu/dists/mantic/winehq-${CODENAME}.sources"
+sudo wget -NP /etc/apt/sources.list.d/ "https://dl.winehq.org/wine-builds/ubuntu/dists/${CODENAME}/winehq-${CODENAME}.sources"
 sudo apt update
 sudo apt install --install-recommends winehq-devel winetricks -y
-winecfg
-winetricks fonts allfonts
-}
+WINEARCH=win32 winecfg
+winetricks -q allfonts
 
 # git
 echo -n "github token?> "
