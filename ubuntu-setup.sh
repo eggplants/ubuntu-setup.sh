@@ -104,6 +104,7 @@ pyenv install "$latest_python"
 pyenv global "$latest_python"
 pip install pipx
 pipx install getjump poetry yt-dlp
+poetry plugin add poetry-version-plugin
 
 # ruby
 git clone https://github.com/rbenv/rbenv.git ~/.rbenv
