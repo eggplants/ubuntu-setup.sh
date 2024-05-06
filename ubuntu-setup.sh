@@ -369,9 +369,14 @@ export PATH="$PATH:$HOME/.config/Code/User/globalStorage/ms-vscode-remote.remote
 export GPG_TTY="$(tty)"
 
 A
-
-mv ~/.zshrc ~/.zshrc.bak
 mv .zshrc.tmp ~/.zshrc
+
+cat <~/.zshenv <<'A' >.zshenv.tmp
+#!/usr/bin/env zsh
+
+# zmodload zsh/zprof && zprof
+A
+mv .zshenv.tmp ~/.zshenv
 
 byobu-enable
 echo '_byobu_sourced=1 . /usr/bin/byobu-launch 2>/dev/null || true' > ~/.zprofile
