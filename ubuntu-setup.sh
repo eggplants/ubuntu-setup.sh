@@ -304,7 +304,7 @@ A
 
 # zsh
 [[ "$SHELL" = "$(which zsh)" ]] || chsh -s "$(which zsh)"
-cat <<'A' <~/.zshrc >.zshrc.tmp
+cat <<'A' >.zshrc.tmp
 #!/usr/bin/env zsh
 
 # load zprofile
@@ -369,13 +369,16 @@ export PATH="$PATH:$HOME/.config/Code/User/globalStorage/ms-vscode-remote.remote
 export GPG_TTY="$(tty)"
 
 A
+
+cat ~/.zshrc >>.zshrc.tmp
 mv .zshrc.tmp ~/.zshrc
 
-cat <~/.zshenv <<'A' >.zshenv.tmp
+cat <<'A' >.zshenv.tmp
 #!/usr/bin/env zsh
 
 # zmodload zsh/zprof && zprof
 A
+cat ~/.zshenv >>.zshenv.tmp
 mv .zshenv.tmp ~/.zshenv
 
 byobu-enable
