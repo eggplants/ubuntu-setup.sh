@@ -288,6 +288,15 @@ gdbus call --session \
            --method org.gnome.Shell.Extensions.InstallRemoteExtension \
            "runcat@kolesnikov.se"
 
+# zinit
+curl -s https://raw.githubusercontent.com/zdharma-continuum/zinit/HEAD/scripts/install.sh | bash
+cat <<'A' >>~/.zshrc
+zinit light zdharma-continuum/fast-syntax-highlighting
+zinit light zdharma-continuum/history-search-multi-word
+zinit light zsh-users/zsh-autosuggestions
+zinit light zsh-users/zsh-completions
+A
+
 # zsh
 [[ "$SHELL" = "$(which zsh)" ]] || chsh -s "$(which zsh)"
 cat <<'A' <~/.zshrc >.zshrc.tmp
@@ -352,6 +361,7 @@ export PATH="$PATH:$HOME/.config/Code/User/globalStorage/ms-vscode-remote.remote
 export GPG_TTY="$(tty)"
 
 A
+
 mv ~/.zshrc ~/.zshrc.bak
 mv .zshrc.tmp ~/.zshrc
 
