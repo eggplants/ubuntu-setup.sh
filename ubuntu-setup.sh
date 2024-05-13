@@ -30,6 +30,21 @@ sudo apt install -y \
   libffi-dev libreadline-dev libsqlite3-dev tk-dev liblzma-dev \
   libyaml-dev
 
+# for java
+sudo apt install -y default-jre openjdk-21-jdk-headless maven
+
+# jave
+wget http://jave.de/download/jave5.zip
+sudo unzip jave5.zip -d /usr/local/src/jave5
+wget http://jave.de/figlet/figletfonts40.zip
+sudo unzip figletfonts40.zip 'fonts/*' -d /usr/local/src/jave5
+rm {jave5,figletfonts40}.zip
+
+sudo install -m 755 /dev/stdin /usr/local/bin/jave <<'A'
+#!/bin/bash
+java -jar /usr/local/src/jave5/jave5.jar
+A
+
 # mozc
 ibus restart
 gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'jp'), ('ibus', 'mozc-jp')]"
@@ -384,5 +399,7 @@ echo '_byobu_sourced=1 . /usr/bin/byobu-launch 2>/dev/null || true' > ~/.zprofil
 
 sudo apt autoremove -y
 sudo apt autoclean -y
+
+gsettings set org.gnome.desktop.lockdown disable-lock-screen 'false'
 
 shutdown -r 1
