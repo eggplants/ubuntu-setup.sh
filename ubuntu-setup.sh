@@ -4,6 +4,12 @@
 
 set -eux
 
+IS_DESKTOP="$(apt list --installed 2>/dev/null | grep ubuntu-desktop -q && echo true)"
+
+is_desktop () {
+  [[ "$IS_DESKTOP" = true ]]
+}
+
 cd ~
 mkdir -p prog
 mkdir -p _setup
@@ -14,17 +20,23 @@ if ! [[ -f ~/.sec.key ]]; then
   exit 1
 fi
 
-gsettings set org.gnome.desktop.lockdown disable-lock-screen 'true'
+is_desktop && {
+  gsettings set org.gnome.desktop.lockdown disable-lock-screen 'true'
+}
 
 # apt
 sudo apt update -y
 sudo apt upgrade -y
 sudo apt install -y \
-  byobu curl feh ffmpeg git \
-  ibus-mozc imagemagick jq \
-  network-manager-l2tp network-manager-l2tp-gnome \
-  pinentry-tty pkg-config \
-  rhythmbox unar w3m wget zsh
+  byobu curl ca-certificates ffmpeg git \
+  imagemagick jq network-manager-l2tp \
+  pinentry-tty pkg-config unar w3m wget zsh
+sudo install -m 0755 -d /etc/apt/keyrings
+
+is_desktop && {
+  sudo apt install -y \
+    feh ibus-mozc network-manager-l2tp-gnome rhythmbox
+}
 
 # for python + ruby
 sudo apt install -y \
@@ -36,51 +48,83 @@ sudo apt install -y \
 sudo apt install -y default-jre openjdk-21-jdk-headless maven
 
 # jave
-wget http://jave.de/download/jave5.zip
-sudo unzip jave5.zip -d /usr/local/src/jave5
-wget http://jave.de/figlet/figletfonts40.zip
-sudo unzip figletfonts40.zip 'fonts/*' -d /usr/local/src/jave5
-rm {jave5,figletfonts40}.zip
-
-sudo install -m 755 /dev/stdin /usr/local/bin/jave <<'A'
+is_desktop && {
+  wget http://jave.de/download/jave5.zip
+  sudo unzip jave5.zip -d /usr/local/src/jave5
+  wget http://jave.de/figlet/figletfonts40.zip
+  sudo unzip figletfonts40.zip 'fonts/*' -d /usr/local/src/jave5
+  rm {jave5,figletfonts40}.zip
+  sudo install -m 755 /dev/stdin /usr/local/bin/jave <<'A'
 #!/bin/bash
 java -jar /usr/local/src/jave5/jave5.jar
 A
+}
 
 # mozc
-ibus restart
-gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'jp'), ('ibus', 'mozc-jp')]"
+is_desktop && {
+  ibus restart
+  gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'jp'), ('ibus', 'mozc-jp')]"
+}
 
 # rancher desktop
-curl -s 'https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key' | gpg --dearmor |
-  sudo dd status=none of='/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg'
-echo 'deb [signed-by=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg]'\
-     'https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/ ./' | 
-  sudo dd status=none of='/etc/apt/sources.list.d/isv-rancher-stable.list'
-sudo apt update
-sudo apt install rancher-desktop -y
-# https://github.com/rancher-sandbox/rancher-desktop/issues/4524#issuecomment-2079041512
-sudo ln -s /usr/share/OVMF/OVMF_CODE_4M.fd /usr/share/OVMF/OVMF_CODE.fddock
+# curl -s 'https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key' | gpg --dearmor |
+#   sudo dd status=none of='/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg'
+# echo 'deb [signed-by=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg]'\
+#      'https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/ ./' | 
+#   sudo dd status=none of='/etc/apt/sources.list.d/isv-rancher-stable.list'
+# sudo apt update
+# sudo apt install rancher-desktop -y
+# # https://github.com/rancher-sandbox/rancher-desktop/issues/4524#issuecomment-2079041512
+# sudo ln -s /usr/share/OVMF/OVMF_CODE_4M.fd /usr/share/OVMF/OVMF_CODE.fddock
+
+# docker
+if is_desktop
+then
+  # docker desktop
+  wget "$(
+    curl -s "https://docs.docker.com/desktop/release-notes/" | grep -oEm1 'https://[^<]+>Debian</a>' | cut -d'>' -f1
+  )"
+  sudo apt install -y ./docker-desktop-amd64.deb
+  # https://github.com/docker/desktop-linux/issues/209#issuecomment-2083540338
+  echo 'kernel.apparmor_restrict_unprivileged_userns = 0' | sudo tee -a /etc/sysctl.d/60-apparmor-namespace.conf
+else
+  # docker engine
+  sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  sudo chmod a+r /etc/apt/keyrings/docker.asc
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(
+    . /etc/os-release && echo "$VERSION_CODENAME"
+  ) stable" |
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  sudo apt -y update
+  sudo apt -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+fi
 
 # google chrome
-wget 'https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb'
-sudo apt install ./google-chrome-stable_current_amd64.deb -y
+is_desktop && {
+  wget 'https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb'
+  sudo apt install ./google-chrome-stable_current_amd64.deb -y
+}
 
 # Qfinder
-curl -s 'https://www.qnap.com/ja-jp/utilities/essentials' |
-  grep -oEm1 'https://[^"]+/QNAPQfinderProUbuntux64[^"]+\.deb' | xargs wget
-sudo apt install ./QNAPQfinderProUbuntux64*.deb -y
+is_desktop && {
+  curl -s 'https://www.qnap.com/ja-jp/utilities/essentials' |
+    grep -oEm1 'https://[^"]+/QNAPQfinderProUbuntux64[^"]+\.deb' | xargs wget
+  sudo apt install ./QNAPQfinderProUbuntux64*.deb -y
+}
 
 # import key
 export GPG_TTY="$(tty)"
 echo "pinentry-program $(which pinentry-tty)" > ~/.gnupg/gpg-agent.conf
 gpgconf --kill gpg-agent
 cat ~/.sec.key | gpg --allow-secret-key --import
+pass init "$(gpg --with-colons --list-keys | awk -F: '$1=="fpr"{print$10;exit}')"
 rm ~/.sec.key
 
 # code
-wget --trust-server-names -O code_latest.deb 'https://go.microsoft.com/fwlink/?LinkID=760868'
-sudo apt install ./code_latest.deb -y
+is_desktop && {
+  wget --trust-server-names -O code_latest.deb 'https://go.microsoft.com/fwlink/?LinkID=760868'
+  sudo apt install ./code_latest.deb -y
+}
 
 # nanorc
 git clone --depth 1 --single-branch 'https://github.com/serialhex/nano-highlight' ~/.nano
@@ -101,8 +145,10 @@ set statuscolor white,green
 A
 
 # steam
-wget 'https://cdn.akamai.steamstatic.com/client/installer/steam.deb'
-sudo apt install ./steam.deb -y
+is_desktop && {
+  wget 'https://cdn.akamai.steamstatic.com/client/installer/steam.deb'
+  sudo apt install ./steam.deb -y
+}
 
 # python
 git clone 'https://github.com/pyenv/pyenv.git' ~/.pyenv
@@ -142,17 +188,48 @@ sudo apt purge nodejs npm -y
 # rust
 curl 'https://sh.rustup.rs' | sh -s -- -y
 source ~/.cargo/env
-cargo install alacritty
-sudo update-alternatives --install /usr/bin/x-terminal-emulator \
-  x-terminal-emulator ~/.cargo/bin/alacritty 50
-mkdir -p ~/.config/alacritty
-curl -o- 'https://codeload.github.com/eendroroy/alacritty-theme/tar.gz/refs/heads/master' |
-  tar xzf - alacritty-theme-master/themes
-mv alacritty-theme-master ~/.config/alacritty
-echo 'import = [' >> ~/.config/alacritty/alacritty.toml
-find ~/.config/alacritty/alacritty-theme-master/themes -type f -name '*toml' |
-  sed 's/^.*/  # "&",/' >> ~/.config/alacritty/alacritty.toml
-echo ']' >> ~/.config/alacritty/alacritty.toml
+
+# alacritty
+is_desktop && {
+  cargo install alacritty
+  sudo update-alternatives --install /usr/bin/x-terminal-emulator \
+    x-terminal-emulator ~/.cargo/bin/alacritty 50
+  mkdir -p ~/.config/alacritty
+  curl -o- 'https://codeload.github.com/eendroroy/alacritty-theme/tar.gz/refs/heads/master' |
+    tar xzf - alacritty-theme-master/themes
+  mv alacritty-theme-master ~/.config/alacritty
+  echo 'import = [' >> ~/.config/alacritty/alacritty.toml
+  find ~/.config/alacritty/alacritty-theme-master/themes -type f -name '*toml' |
+    sed 's/^.*/  # "&",/' >> ~/.config/alacritty/alacritty.toml
+  echo ']' >> ~/.config/alacritty/alacritty.toml
+
+  # hackgen
+  curl -s 'https://api.github.com/repos/yuru7/HackGen/releases/latest' |
+    grep -oEm1 'https://.*/HackGen_NF_v.*.zip' | xargs wget
+  unar HackGen_NF_v*.zip
+  mv ./HackGen_NF_v*/ hackgen
+  sudo mv ./hackgen /usr/share/fonts/truetype/
+  cat <<'A'>>~/.config/alacritty/alacritty.toml
+[font]
+size = 10.0
+
+[font.bold]
+family = "HackGen Console NF"
+style = "Bold"
+
+[font.bold_italic]
+family = "HackGen Console NF"
+style = "Bold Italic"
+
+[font.italic]
+family = "HackGen Console NF"
+style = "Italic"
+
+[font.normal]
+family = "HackGen Console NF"
+style = "Regular"
+A
+}
 
 # starship
 curl -sS 'https://starship.rs/install.sh' | sh -s -- -y
@@ -206,37 +283,12 @@ disabled = fals
 format = '[$symbol$version]($style)'
 A
 
-# hackgen
-curl -s 'https://api.github.com/repos/yuru7/HackGen/releases/latest' |
-  grep -oEm1 'https://.*/HackGen_NF_v.*.zip' | xargs wget
-unar HackGen_NF_v*.zip
-mv ./HackGen_NF_v*/ hackgen
-sudo mv ./hackgen /usr/share/fonts/truetype/
-cat <<'A'>>~/.config/alacritty/alacritty.toml
-[font]
-size = 10.0
-
-[font.bold]
-family = "HackGen Console NF"
-style = "Bold"
-
-[font.bold_italic]
-family = "HackGen Console NF"
-style = "Bold Italic"
-
-[font.italic]
-family = "HackGen Console NF"
-style = "Italic"
-
-[font.normal]
-family = "HackGen Console NF"
-style = "Regular"
-A
-
 # xclicker
-curl -s 'https://api.github.com/repos/robiot/xclicker/releases/latest' |
-  grep -oEm1 'https://.*/xclicker_[^_]+_amd64.deb' | xargs wget
-sudo apt install ./xclicker_*_amd64.deb -y
+is_desktop && {
+  curl -s 'https://api.github.com/repos/robiot/xclicker/releases/latest' |
+    grep -oEm1 'https://.*/xclicker_[^_]+_amd64.deb' | xargs wget
+  sudo apt install ./xclicker_*_amd64.deb -y
+}
 
 # go
 sudo apt install -y golang-go
@@ -247,20 +299,19 @@ curl -s 'https://api.github.com/repos/roswell/roswell/releases/latest' |
 sudo apt install ./roswell_*_amd64.deb
 ros install sbcl-bin
 
-# java
-sudo apt install default-jre openjdk-21-jdk maven -y
-
 # wine
-CODENAME="$(lsb_release -c | cut -f2)"
-sudo dpkg --add-architecture i386
-sudo apt install libfaudio0 -y
-sudo mkdir -pm755 /etc/apt/keyrings
-sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
-sudo wget -NP /etc/apt/sources.list.d/ "https://dl.winehq.org/wine-builds/ubuntu/dists/${CODENAME}/winehq-${CODENAME}.sources"
-sudo apt update
-sudo apt install --install-recommends winehq-devel winetricks -y
-WINEARCH=win32 winecfg
-winetricks -q allfonts
+is_desktop && {
+  CODENAME="$(lsb_release -c | cut -f2)"
+  sudo dpkg --add-architecture i386
+  sudo apt install libfaudio0 -y
+  sudo mkdir -pm755 /etc/apt/keyrings
+  sudo wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+  sudo wget -NP /etc/apt/sources.list.d/ "https://dl.winehq.org/wine-builds/ubuntu/dists/${CODENAME}/winehq-${CODENAME}.sources"
+  sudo apt update
+  sudo apt install --install-recommends winehq-devel winetricks -y
+  WINEARCH=win32 winecfg
+  winetricks -q allfonts
+}
 
 # git
 echo -n "github token?> "
@@ -402,6 +453,8 @@ echo '_byobu_sourced=1 . /usr/bin/byobu-launch 2>/dev/null || true' > ~/.zprofil
 sudo apt autoremove -y
 sudo apt autoclean -y
 
-gsettings set org.gnome.desktop.lockdown disable-lock-screen 'false'
+is_desktop && {
+  gsettings set org.gnome.desktop.lockdown disable-lock-screen 'false'
+}
 
 shutdown -r 1
