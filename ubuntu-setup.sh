@@ -87,6 +87,8 @@ then
   sudo apt install -y ./docker-desktop-amd64.deb
   # https://github.com/docker/desktop-linux/issues/209#issuecomment-2083540338
   echo 'kernel.apparmor_restrict_unprivileged_userns = 0' | sudo tee -a /etc/sysctl.d/60-apparmor-namespace.conf
+elif command -v wsl.exe &>/dev/null
+  :
 else
   # docker engine
   sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
