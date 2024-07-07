@@ -4,16 +4,18 @@
 
 set -eux
 
-IS_DESKTOP="$(apt list --installed 2>/dev/null | grep ubuntu-desktop -q && echo true)"
+IS_DESKTOP="$(apt list --installed 2>/dev/null | grep ubuntu-desktop -q && echo true || :)"
 
 is_desktop () {
   [[ "$IS_DESKTOP" = true ]]
 }
 
 cd ~
+mkdir -p .config
+mkdir -p .gnupg
 mkdir -p prog
 mkdir -p _setup
-cd _setup
+pushd _setup
 
 if ! [[ -f ~/.sec.key ]]; then
   echo "need: ~/.sec.key"
@@ -29,7 +31,7 @@ sudo apt update -y
 sudo apt upgrade -y
 sudo apt install -y \
   byobu curl ca-certificates ffmpeg git \
-  imagemagick jq network-manager-l2tp \
+  imagemagick jq network-manager-l2tp pass \
   pinentry-tty pkg-config unar w3m wget zsh
 sudo install -m 0755 -d /etc/apt/keyrings
 
@@ -88,7 +90,8 @@ then
   # https://github.com/docker/desktop-linux/issues/209#issuecomment-2083540338
   echo 'kernel.apparmor_restrict_unprivileged_userns = 0' | sudo tee -a /etc/sysctl.d/60-apparmor-namespace.conf
 elif command -v wsl.exe &>/dev/null
-  :
+then
+  powershell.exe /c winget.exe install Docker.DockerDesktop || :
 else
   # docker engine
   sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
@@ -115,12 +118,16 @@ is_desktop && {
 }
 
 # import key
-export GPG_TTY="$(tty)"
-echo "pinentry-program $(which pinentry-tty)" > ~/.gnupg/gpg-agent.conf
-gpgconf --kill gpg-agent
-cat ~/.sec.key | gpg --allow-secret-key --import
-pass init "$(gpg --with-colons --list-keys | awk -F: '$1=="fpr"{print$10;exit}')"
-rm ~/.sec.key
+gpg --list-keys | grep -q 8117 || {
+  export GPG_TTY="$(tty)"
+  echo "pinentry-program $(which pinentry-tty)" > ~/.gnupg/gpg-agent.conf
+  chmod 600 ~/.gnupg/*
+  chmod 700 ~/.gnupg
+  gpgconf --kill gpg-agent
+  sleep 3s
+  cat ~/.sec.key | gpg --allow-secret-key --import
+  pass init "$(gpg --with-colons --list-keys | awk -F: '$1=="fpr"{print$10;exit}')"
+}
 
 # code
 is_desktop && {
@@ -129,8 +136,10 @@ is_desktop && {
 }
 
 # nanorc
-git clone --depth 1 --single-branch 'https://github.com/serialhex/nano-highlight' ~/.nano
-cat <<'A'>>~/.nanorc
+[[ -d ~/.nano ]] || {
+  git clone --depth 1 --single-branch 'https://github.com/serialhex/nano-highlight' ~/.nano
+}
+cat <<'A'>~/.nanorc
 include "~/.nano/*.nanorc"
 
 set autoindent
@@ -153,39 +162,47 @@ is_desktop && {
 }
 
 # python
-git clone 'https://github.com/pyenv/pyenv.git' ~/.pyenv
-git clone 'https://github.com/pyenv/pyenv-update.git' ~/.pyenv/plugins/pyenv-update
-export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
-echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
-echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
-echo 'eval "$(pyenv init -)"' >> ~/.zshrc
-latest_python="$(curl -s 'https://endoflife.date/api/python.json' | jq -r '.[0].cycle')"
-pyenv install "$latest_python"
-pyenv global "$latest_python"
-pip install pipx
-pipx install getjump poetry yt-dlp
-poetry plugin add poetry-version-plugin
+[[ -d ~/.pyenv ]] || {
+  git clone 'https://github.com/pyenv/pyenv.git' ~/.pyenv
+  git clone 'https://github.com/pyenv/pyenv-update.git' ~/.pyenv/plugins/pyenv-update
+  export PYENV_ROOT="$HOME/.pyenv"
+  command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+  eval "$(pyenv init -)"
+  echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+  echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+  echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+  echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
+  echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
+  echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+  latest_python="$(curl -s 'https://endoflife.date/api/python.json' | jq -r '.[0].cycle')"
+  pyenv install "$latest_python"
+  pyenv global "$latest_python"
+  pip install pipx
+  pipx ensurepath
+  export PATH="$HOME/.local/bin:$PATH"
+  pipx install getjump poetry yt-dlp
+  poetry self add poetry-version-plugin
+}
 
 # ruby
-git clone https://github.com/rbenv/rbenv.git ~/.rbenv
-eval "$(~/.rbenv/bin/rbenv init - bash)"
-echo 'eval "$(~/.rbenv/bin/rbenv init - bash)"' >> ~/.bashrc
-echo 'eval "$(~/.rbenv/bin/rbenv init - zsh)"' >> ~/.zshrc
-git clone 'https://github.com/rbenv/ruby-build.git' "$(rbenv root)"/plugins/ruby-build
-latest_ruby="$(curl -s 'https://endoflife.date/api/ruby.json' | jq -r '.[0].latest')"
-rbenv install "$latest_ruby"
-rbenv global "$latest_ruby"
+[[ -d ~/.rbenv ]] || {
+  git clone https://github.com/rbenv/rbenv.git ~/.rbenv
+  eval "$(~/.rbenv/bin/rbenv init - bash)"
+  echo 'eval "$(~/.rbenv/bin/rbenv init - bash)"' >> ~/.bashrc
+  echo 'eval "$(~/.rbenv/bin/rbenv init - zsh)"' >> ~/.zshrc
+  git clone 'https://github.com/rbenv/ruby-build.git' "$(rbenv root)"/plugins/ruby-build
+  latest_ruby="$(curl -s 'https://endoflife.date/api/ruby.json' | jq -r '.[0].latest')"
+  rbenv install "$latest_ruby"
+  rbenv global "$latest_ruby"
+}
 
 # node
-sudo apt install nodejs npm -y
-sudo npm install bats n yarn -g
-sudo n stable
-sudo apt purge nodejs npm -y
+command -v node 2>/dev/null || {
+  sudo apt install nodejs npm -y
+  sudo npm install bats n yarn -g
+  sudo n stable
+  sudo apt purge nodejs npm -y
+}
 
 # rust
 curl 'https://sh.rustup.rs' | sh -s -- -y
@@ -234,10 +251,11 @@ A
 }
 
 # starship
-curl -sS 'https://starship.rs/install.sh' | sh -s -- -y
-echo 'eval "$(starship init bash)"' >> ~/.bashrc
-echo 'eval "$(starship init zsh)"' >> ~/.zshrc
-cat <<'A'>>~/.config/starship.toml
+[[ -f ~/.config/starship.toml ]] || {
+  curl -sS 'https://starship.rs/install.sh' | sh -s -- -y
+  echo 'eval "$(starship init bash)"' >> ~/.bashrc
+  echo 'eval "$(starship init zsh)"' >> ~/.zshrc
+  cat <<'A'>>~/.config/starship.toml
 "$schema" = 'https://starship.rs/config-schema.json'
 
 add_newline = false
@@ -281,9 +299,10 @@ style = "bold dimmed green"
 format = "[$ram_pct]($style)"
 
 [package]
-disabled = fals
+disabled = false
 format = '[$symbol$version]($style)'
 A
+}
 
 # xclicker
 is_desktop && {
@@ -296,10 +315,12 @@ is_desktop && {
 sudo apt install -y golang-go
 
 # clisp
-curl -s 'https://api.github.com/repos/roswell/roswell/releases/latest' |
-  grep -oEm1 'https://.*_amd64.deb' | xargs wget
-sudo apt install ./roswell_*_amd64.deb
-ros install sbcl-bin
+command -v ros 2>/dev/null || {
+  curl -s 'https://api.github.com/repos/roswell/roswell/releases/latest' |
+    grep -oEm1 'https://.*_amd64.deb' | xargs wget
+  sudo apt install ./roswell_*_amd64.deb
+  ros install sbcl-bin
+}
 
 # wine
 is_desktop && {
@@ -316,11 +337,13 @@ is_desktop && {
 }
 
 # git
-echo -n "github token?> "
-# Copy generated fine-grained PAT and paste.
-# Required permission: Gist, Contents
-read -s -r token
-cat << A >> ~/.netrc
+[[ -f ~/.gitconfig ]] || {
+  echo -n "github token?> "
+  # Copy generated fine-grained PAT and paste.
+  # Required permission: Gist, Contents
+  # https://github.com/settings/tokens
+  read -s -r token
+  cat << A >> ~/.netrc
 machine github.com
 login eggplants
 password ${token}
@@ -347,15 +370,18 @@ A
   git config --global commit.gpgsign true
   git config --global help.autocorrect 1
   git config --global pull.rebase false
+}
 
 # runcat
-wget https://github.com/win0err/gnome-runcat/releases/latest/download/runcat@kolesnikov.se.shell-extension.zip
-gnome-extensions install ./runcat@kolesnikov.se.shell-extension.zip --force
-gdbus call --session \
-           --dest org.gnome.Shell.Extensions \
-           --object-path /org/gnome/Shell/Extensions \
-           --method org.gnome.Shell.Extensions.InstallRemoteExtension \
-           "runcat@kolesnikov.se"
+is_desktop && {
+  wget https://github.com/win0err/gnome-runcat/releases/latest/download/runcat@kolesnikov.se.shell-extension.zip
+  gnome-extensions install ./runcat@kolesnikov.se.shell-extension.zip --force
+  gdbus call --session \
+             --dest org.gnome.Shell.Extensions \
+             --object-path /org/gnome/Shell/Extensions \
+             --method org.gnome.Shell.Extensions.InstallRemoteExtension \
+             "runcat@kolesnikov.se"
+}
 
 # zinit
 curl -s https://raw.githubusercontent.com/zdharma-continuum/zinit/HEAD/scripts/install.sh | bash
@@ -454,6 +480,10 @@ echo '_byobu_sourced=1 . /usr/bin/byobu-launch 2>/dev/null || true' > ~/.zprofil
 
 sudo apt autoremove -y
 sudo apt autoclean -y
+
+rm ~/.sec.key
+popd
+rm -rf _setup
 
 is_desktop && {
   gsettings set org.gnome.desktop.lockdown disable-lock-screen 'false'
