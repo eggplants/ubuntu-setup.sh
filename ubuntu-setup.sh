@@ -214,7 +214,7 @@ is_desktop && {
   sudo update-alternatives --install /usr/bin/x-terminal-emulator \
     x-terminal-emulator ~/.cargo/bin/alacritty 50
   mkdir -p ~/.config/alacritty
-  curl -o- 'https://codeload.github.com/eendroroy/alacritty-theme/tar.gz/refs/heads/master' |
+  curl -o- 'https://codeload.github.com/alacritty/alacritty-theme/tar.gz/refs/heads/master' |
     tar xzf - alacritty-theme-master/themes
   mv alacritty-theme-master ~/.config/alacritty
   echo 'import = [' >> ~/.config/alacritty/alacritty.toml
