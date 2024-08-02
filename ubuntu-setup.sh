@@ -32,19 +32,13 @@ sudo apt upgrade -y
 sudo apt install -y \
   byobu curl ca-certificates ffmpeg git \
   imagemagick jq network-manager-l2tp pass \
-  pinentry-tty pkg-config unar w3m wget zsh
+  pinentry-tty pkg-config unar vlc w3m wget zsh
 sudo install -m 0755 -d /etc/apt/keyrings
 
 is_desktop && {
   sudo apt install -y \
     feh ibus-mozc network-manager-l2tp-gnome rhythmbox
 }
-
-# for python + ruby
-sudo apt install -y \
-  libssl-dev libbz2-dev libncurses5-dev libncursesw5-dev \
-  libffi-dev libreadline-dev libsqlite3-dev tk-dev liblzma-dev \
-  libyaml-dev
 
 # for java
 sudo apt install -y default-jre openjdk-21-jdk-headless maven
@@ -155,28 +149,21 @@ set selectedcolor white,green
 set statuscolor white,green
 A
 
+# mise
+curl https://mise.run | sh
+echo 'eval "$(/usr/local/bin/mise activate bash)"' >>~/.bashrc
+echo 'eval "$(/usr/local/bin/mise activate zsh)"' >>~/.zshrc
+eval "$(/usr/local/bin/mise activate zsh)"
+
 # steam
-is_desktop && {
-  wget 'https://cdn.akamai.steamstatic.com/client/installer/steam.deb'
-  sudo apt install ./steam.deb -y
-}
+# is_desktop && {
+#   wget 'https://cdn.akamai.steamstatic.com/client/installer/steam.deb'
+#   sudo apt install ./steam.deb -y
+# }
 
 # python
 [[ -d ~/.pyenv ]] || {
-  git clone 'https://github.com/pyenv/pyenv.git' ~/.pyenv
-  git clone 'https://github.com/pyenv/pyenv-update.git' ~/.pyenv/plugins/pyenv-update
-  export PYENV_ROOT="$HOME/.pyenv"
-  command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-  eval "$(pyenv init -)"
-  echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-  echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-  echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-  echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
-  echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
-  echo 'eval "$(pyenv init -)"' >> ~/.zshrc
-  latest_python="$(curl -s 'https://endoflife.date/api/python.json' | jq -r '.[0].cycle')"
-  pyenv install "$latest_python"
-  pyenv global "$latest_python"
+  mise use --global python@latest
   pip install pipx
   pipx ensurepath
   export PATH="$HOME/.local/bin:$PATH"
@@ -186,22 +173,12 @@ is_desktop && {
 
 # ruby
 [[ -d ~/.rbenv ]] || {
-  git clone https://github.com/rbenv/rbenv.git ~/.rbenv
-  eval "$(~/.rbenv/bin/rbenv init - bash)"
-  echo 'eval "$(~/.rbenv/bin/rbenv init - bash)"' >> ~/.bashrc
-  echo 'eval "$(~/.rbenv/bin/rbenv init - zsh)"' >> ~/.zshrc
-  git clone 'https://github.com/rbenv/ruby-build.git' "$(rbenv root)"/plugins/ruby-build
-  latest_ruby="$(curl -s 'https://endoflife.date/api/ruby.json' | jq -r '.[0].latest')"
-  rbenv install "$latest_ruby"
-  rbenv global "$latest_ruby"
+  mise use --global ruby@latest
 }
 
 # node
 command -v node 2>/dev/null || {
-  sudo apt install nodejs npm -y
-  sudo npm install bats n yarn -g
-  sudo n stable
-  sudo apt purge nodejs npm -y
+  mise use --global node@latest
 }
 
 # rust
@@ -312,7 +289,9 @@ is_desktop && {
 }
 
 # go
-sudo apt install -y golang-go
+command -v go 2>/dev/null || {
+  mise use --global go@latest
+}
 
 # clisp
 command -v ros 2>/dev/null || {
@@ -343,7 +322,7 @@ is_desktop && {
   # Required permission: Gist, Contents
   # https://github.com/settings/tokens
   read -s -r token
-  cat << A >> ~/.netrc
+  cat <<A >>~/.netrc
 machine github.com
 login eggplants
 password ${token}
@@ -351,25 +330,29 @@ machine gist.github.com
 login eggplants
 password ${token}
 A
+  netrc_helper_path="$(
+    readlink /usr/local/bin/git -f | sed 's;/bin/git;;'
+  )/share/git-core/contrib/credential/netrc/git-credential-netrc.perl"
   git_email="$(
     gpg --list-keys | grep -Em1 '^uid' |
-    rev | cut -f1 -d ' ' | tr -d '<>' | rev
+      rev | cut -f1 -d ' ' | tr -d '<>' | rev
   )"
-  gpg -e -r "$git_email" ~/.netrc
-  rm ~/.netrc
-  sudo chmod +x \
-    /usr/share/doc/git/contrib/credential/netrc/git-credential-netrc.perl
-  git config --global credential.helper \
-    /usr/share/doc/git/contrib/credential/netrc/git-credential-netrc.perl
-  git config --global user.name eggplants
+  # gpg -e -r "$git_email" ~/.netrc
+  # rm ~/.netrc
+  sudo chmod +x "$netrc_helper_path"
+  git config --global commit.gpgsign true
+  git config --global core.editor nano
+  git config --global credential.helper "$netrc_helper_path"
+  git config --global gpg.program "$(which gpg)"
+  git config --global help.autocorrect 1
+  git config --global pull.rebase false
+  git config --global push.autoSetupRemote true
+  git config --global rebase.autosquash true
   git config --global user.email "$git_email"
+  git config --global user.name eggplants
   git config --global user.signingkey "$(
     gpg --list-secret-keys | tac | grep -m1 -B1 '^sec' | head -1 | awk '$0=$1'
   )"
-  git config --global gpg.program "$(which gpg)"
-  git config --global commit.gpgsign true
-  git config --global help.autocorrect 1
-  git config --global pull.rebase false
 }
 
 # runcat
@@ -419,11 +402,13 @@ setopt nolistbeep
 setopt aliasfuncdef
 setopt appendhistory
 setopt histignoredups
-# setopt sharehistory
+setopt sharehistory
 setopt extendedglob
 setopt incappendhistory
 setopt interactivecomments
 setopt prompt_subst
+
+unsetopt nomatch
 
 # alias
 alias ll='ls -lGF --color=auto'
