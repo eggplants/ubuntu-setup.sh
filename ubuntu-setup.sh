@@ -112,15 +112,21 @@ is_desktop && {
 }
 
 # import key
-gpg --list-keys | grep -q 8117 || {
+gpg --list-keys | grep -q EE38 || {
   export GPG_TTY="$(tty)"
+  export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
   echo "pinentry-program $(which pinentry-tty)" > ~/.gnupg/gpg-agent.conf
+  echo enable-ssh-support >> ~/.gnupg/gpg-agent.conf
+  touch ~/.gnupg/sshcontrol
   chmod 600 ~/.gnupg/*
   chmod 700 ~/.gnupg
   gpgconf --kill gpg-agent
   sleep 3s
   cat ~/.sec.key | gpg --allow-secret-key --import
+  gpg --list-key --with-keygrip | grep -FA1 '[SA]' | awk -F 'Keygrip = ' '$0=$2' > ~/.gnupg/sshcontrol
   pass init "$(gpg --with-colons --list-keys | awk -F: '$1=="fpr"{print$10;exit}')"
+  gpg-connect-agent updatestartuptty /bye
+  # `gpg --export-ssh-key w10776e8w@yahoo.co.jp > ssh.pub` and copy to server's ~/.ssh/authorized_keys
 }
 
 # code
@@ -446,6 +452,7 @@ export PATH="$PATH:$HOME/.local/bin"
 export PATH="$PATH:$HOME/.config/Code/User/globalStorage/ms-vscode-remote.remote-containers/cli-bin"
 
 export GPG_TTY="$(tty)"
+export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
 
 A
 
