@@ -157,9 +157,9 @@ A
 
 # mise
 curl https://mise.run | sh
-echo 'eval "$(/usr/local/bin/mise activate bash)"' >>~/.bashrc
-echo 'eval "$(/usr/local/bin/mise activate zsh)"' >>~/.zshrc
-eval "$(/usr/local/bin/mise activate zsh)"
+echo 'eval "$($HOME/.local/bin/mise activate bash)"' >>~/.bashrc
+echo 'eval "$($HOME/.local/bin/mise activate zsh)"' >>~/.zshrc
+eval "$($HOME/.local/bin/mise activate zsh)"
 
 # steam
 # is_desktop && {
